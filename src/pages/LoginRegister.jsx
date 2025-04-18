@@ -1,189 +1,142 @@
-// src/pages/LoginRegister.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiFetch } from "../api";
+import { registerUser, loginUser } from "../api";
 
-export default function LoginRegister() {
-  const [mode, setMode] = useState("login"); // "login" or "register"
+function LoginRegister() {
+  const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isManager, setIsManager] = useState(false);
-  const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
-  // Clear placeholder on focus and restore on blur if empty.
-  const handleFocus = (e) => {
-    e.target.dataset.placeholder = e.target.placeholder;
-    e.target.placeholder = "";
-  };
-  const handleBlur = (e) => {
-    if (e.target.value.trim() === "") {
-      e.target.placeholder = e.target.dataset.placeholder;
-    }
-  };
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError(null);
+  const validate = () => {
+    const errors = [];
 
     if (mode === "register") {
-      // Registration validations.
+      if (!/^[\w]+$/.test(name)) {
+        errors.push(
+          "Username must only contain letters, numbers, and underscores."
+        );
+      }
       if (!email.endsWith("@stud.noroff.no")) {
-        setError("Email must be a stud.noroff.no address");
-        return;
+        errors.push("Email must be a stud.noroff.no address.");
       }
       if (password.length < 8) {
-        setError("Password must be at least 8 characters.");
-        return;
+        errors.push("Password must be at least 8 characters.");
       }
       if (password !== confirmPassword) {
-        setError("Passwords do not match.");
-        return;
+        errors.push("Passwords do not match.");
       }
+    }
 
-      const payload = {
+    if (mode === "login") {
+      if (!email || !password) {
+        errors.push("Email and password are required.");
+      }
+    }
+
+    return errors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errors = validate();
+    if (errors.length) {
+      alert(errors.join("\n"));
+      return;
+    }
+
+    if (mode === "register") {
+      const response = await registerUser({
         name,
         email,
         password,
-        venueManager: isManager, // true if manager, false if explorer.
-        bio: "created via holidaze", // tag for our site.
-      };
+        venueManager: isManager,
+      });
 
-      try {
-        // Registration endpoint with query parameters.
-        const regData = await apiFetch("/auth/register?_holidaze=true", {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        console.log("Registration response data:", regData);
+      if (response?.data?.email) {
+        // ✅ Auto-login after successful registration
+        const loginResponse = await loginUser({ email, password });
 
-        if (regData.data?.accessToken) {
-          localStorage.setItem("holidazeToken", regData.data.accessToken);
-          // Always explicitly store the role:
-          localStorage.setItem("userRole", isManager ? "manager" : "explorer");
-          navigate("/profile");
+        if (loginResponse?.data?.accessToken) {
+          localStorage.setItem("token", loginResponse.data.accessToken);
+          localStorage.setItem("user", JSON.stringify(loginResponse.data));
+
+          const destination = loginResponse.data.venueManager
+            ? "/manager"
+            : "/customer";
+          navigate(destination);
         } else {
-          // Auto-login if the registration response didn't include a token.
-          const loginPayload = { email, password };
-          const loginData = await apiFetch("/auth/login?_holidaze=true", {
-            method: "POST",
-            body: JSON.stringify(loginPayload),
-          });
-          console.log("Auto-login response data:", loginData);
-          if (loginData.data?.accessToken) {
-            localStorage.setItem("holidazeToken", loginData.data.accessToken);
-            localStorage.setItem(
-              "userRole",
-              isManager ? "manager" : "explorer"
-            );
-            navigate("/profile");
-          } else {
-            setError(
-              "Registered successfully, but auto-login failed. Please log in."
-            );
-          }
+          alert("Registration succeeded, but auto-login failed.");
         }
-      } catch (err) {
-        setError(err.message);
-      }
-    } else {
-      // Login mode.
-      const payload = { email, password };
-      try {
-        const loginData = await apiFetch("/auth/login?_holidaze=true", {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        console.log("Login response data:", loginData);
-        if (loginData.data?.accessToken) {
-          localStorage.setItem("holidazeToken", loginData.data.accessToken);
-          // Store the role returned by the API, or fallback to explorer if not provided.
-          localStorage.setItem(
-            "userRole",
-            loginData.data.venueManager ? "manager" : "explorer"
-          );
-          navigate("/profile");
-        } else {
-          setError("Login succeeded, but no access token returned.");
-        }
-      } catch (err) {
-        setError(err.message);
+      } else {
+        alert("Registration failed.");
       }
     }
-  }
+
+    if (mode === "login") {
+      const response = await loginUser({ email, password });
+
+      if (response?.data?.accessToken) {
+        localStorage.setItem("token", response.data.accessToken);
+        localStorage.setItem("user", JSON.stringify(response.data));
+
+        const destination = response.data.venueManager
+          ? "/manager"
+          : "/customer";
+        navigate(destination);
+      } else {
+        alert("Login failed.");
+      }
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-[#7A92A7] font-thin lowercase">
-      <nav className="mb-8 flex space-x-6">
-        <button
-          type="button"
-          className={`pb-1 ${mode === "login" ? "border-b-2 border-[#7A92A7]" : ""}`}
-          onClick={() => setMode("login")}
-        >
-          login
-        </button>
-        <button
-          type="button"
-          className={`pb-1 ${mode === "register" ? "border-b-2 border-[#7A92A7]" : ""}`}
-          onClick={() => setMode("register")}
-        >
-          register
-        </button>
-      </nav>
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-xs flex flex-col items-center text-center"
-      >
-        {/* In register mode, display fields in this order: */}
-        {/* 1. Name */}
+    <div className="p-6 max-w-xs mx-auto text-center">
+      <h2 className="text-lg font-medium mb-6 text-[#D94C4C]">{mode}</h2>
+
+      <form onSubmit={handleSubmit} className="flex flex-col">
         {mode === "register" && (
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder="name"
-            className="mb-4 outline-none p-2 text-center"
+            className="mb-4 text-center border-b border-gray-300 focus:outline-none"
           />
         )}
-        {/* 2. Email */}
+
         <input
           type="text"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           placeholder="email"
-          className="mb-4 outline-none p-2 text-center"
+          className="mb-4 text-center border-b border-gray-300 focus:outline-none"
         />
-        {/* 3. Password */}
+
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           placeholder="password"
-          className="mb-4 outline-none p-2 text-center"
+          className="mb-4 text-center border-b border-gray-300 focus:outline-none"
         />
-        {/* 4. Confirm Password (only in register mode) */}
+
         {mode === "register" && (
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder="confirm password"
-            className="mb-4 outline-none p-2 text-center"
+            className="mb-4 text-center border-b border-gray-300 focus:outline-none"
           />
         )}
-        {/* 5. Explorer/Manager Toggle (only in register mode) */}
+
         {mode === "register" && (
-          <div className="flex justify-around mb-4 w-full">
+          <div className="flex justify-around text-sm mb-4">
             <button
               type="button"
               className={`${!isManager ? "border-b-2 border-[#7A92A7]" : ""}`}
@@ -200,14 +153,23 @@ export default function LoginRegister() {
             </button>
           </div>
         )}
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+
         <button
           type="submit"
-          className="text-[#7A92A7] no-underline hover:underline focus:outline-none"
+          className="bg-[#3C6FF0] text-white py-2 mt-2 text-sm"
         >
-          {mode === "login" ? "login" : "submit"}
+          {mode}
         </button>
       </form>
+
+      <button
+        onClick={() => setMode(mode === "login" ? "register" : "login")}
+        className="mt-4 text-sm text-blue-600 underline"
+      >
+        {mode === "login" ? "register" : "login"}
+      </button>
     </div>
   );
 }
+
+export default LoginRegister;

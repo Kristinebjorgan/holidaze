@@ -5,4 +5,5 @@
 /* Optional minimal reset */
 body {
   @apply bg-white text-red-500 font-sans;
+  text-transform: lowercase;
 }
