@@ -58,16 +58,17 @@ function LoginRegister() {
       });
 
       if (response?.data?.email) {
-        // ✅ Auto-login after successful registration
+        // auto-login after successful registration
         const loginResponse = await loginUser({ email, password });
 
         if (loginResponse?.data?.accessToken) {
           localStorage.setItem("token", loginResponse.data.accessToken);
           localStorage.setItem("user", JSON.stringify(loginResponse.data));
 
+          // redirect to profile after registration
           const destination = loginResponse.data.venueManager
-            ? "/manager"
-            : "/customer";
+            ? "/account/manager"
+            : "/account/customer";
           navigate(destination);
         } else {
           alert("Registration succeeded, but auto-login failed.");
@@ -84,10 +85,8 @@ function LoginRegister() {
         localStorage.setItem("token", response.data.accessToken);
         localStorage.setItem("user", JSON.stringify(response.data));
 
-        const destination = response.data.venueManager
-          ? "/manager"
-          : "/customer";
-        navigate(destination);
+        // redirect to homepage after login
+        navigate("/");
       } else {
         alert("Login failed.");
       }
