@@ -3,7 +3,7 @@ import {
   CLOUDINARY_UPLOAD_PRESET,
   NOROFF_API_BASE_URL,
   NOROFF_API_KEY,
-} from "../config";
+} from "../../config";
 
 const continents = [
   "Africa",

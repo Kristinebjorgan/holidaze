@@ -1,6 +1,6 @@
 // src/pages/AllVenues.jsx
 import dummyVenues from "../lib/dummyVenues";
-import VenueCard from "../components/VenueCard";
+import VenueCard from "../components/venues/VenueCard";
 import Masonry from "react-masonry-css";
 
 // Define breakpoints for the masonry grid
