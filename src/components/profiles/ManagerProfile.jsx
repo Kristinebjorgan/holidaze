@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AddListingModal from "../modals/AddListingModal";
 import ViewVenueModal from "../modals/ViewVenueModal";
-import {
-  NOROFF_API_BASE_URL,
-  NOROFF_API_KEY,
-} from "/Users/kristine/Desktop/Projects/holidaze/src/config.js";
+import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config"; 
 
 function ManagerProfile() {
   const [user, setUser] = useState(null);
@@ -12,6 +10,8 @@ function ManagerProfile() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingVenue, setEditingVenue] = useState(null);
   const [viewingVenue, setViewingVenue] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -45,13 +45,16 @@ function ManagerProfile() {
     }
   };
 
-  const handleVenueCreated = () => {
+const handleVenueCreated = () => {
+  setTimeout(() => {
     if (user?.name) {
-      fetchManagerVenues(user.name);
+      fetchManagerVenues(user.name); 
     }
-    setShowCreateModal(false);
-    setEditingVenue(null);
-  };
+  }, 500); 
+
+  setShowCreateModal(false);
+  setEditingVenue(null);
+};
 
   const handleDeleteVenue = async (id) => {
     const confirm = window.confirm(
@@ -77,17 +80,30 @@ function ManagerProfile() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/auth");
+  };
+
   if (!user) return <p>Loading...</p>;
 
   return (
     <div className="p-6 text-center">
-      <h1 className="text-xl font-bold mb-4 text-[#D94C4C]">
+      <h1 className="text-xl font-bold mb-2 text-[#D94C4C]">
         welcome, {user.name}
       </h1>
 
       <button
+        onClick={handleLogout}
+        className="text-sm text-red-500 underline mb-4"
+      >
+        Log out
+      </button>
+
+      <button
         onClick={() => setShowCreateModal(true)}
-        className="text-blue-600 underline text-sm mb-6"
+        className="text-blue-600 underline text-sm mb-6 block"
       >
         + Add listing
       </button>

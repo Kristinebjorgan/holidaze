@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import EditProfileModal from "../modals/EditProfileModal";
 
 function CustomerProfile() {
   const [user, setUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -11,6 +13,12 @@ function CustomerProfile() {
       setUser(JSON.parse(stored));
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/auth");
+  };
 
   if (!user) return <p>Loading...</p>;
 
@@ -27,11 +35,16 @@ function CustomerProfile() {
           className="w-20 h-20 mx-auto rounded-full object-cover mb-4"
         />
       )}
+
       <button
         onClick={() => setShowEditModal(true)}
-        className="text-sm text-blue-600 underline"
+        className="text-sm text-blue-600 underline mb-2 block"
       >
         Edit profile
+      </button>
+
+      <button onClick={handleLogout} className="text-sm text-red-500 underline">
+        Log out
       </button>
 
       {showEditModal && (

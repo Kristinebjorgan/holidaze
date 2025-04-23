@@ -3,6 +3,7 @@ import {
   CLOUDINARY_UPLOAD_PRESET,
   NOROFF_API_BASE_URL,
   NOROFF_API_KEY,
+  APP_VENUE_TAG,
 } from "../../config";
 
 const continents = [
@@ -18,6 +19,7 @@ const continents = [
 export default function AddListingModal({ onClose, onVenueCreated }) {
   const [venueName, setVenueName] = useState("");
   const [location, setLocation] = useState("");
+  const [country, setCountry] = useState("");
   const [continent, setContinent] = useState("");
   const [price, setPrice] = useState("");
   const [maxGuests, setMaxGuests] = useState("");
@@ -31,26 +33,28 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const modalRef = useRef(null);
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
         onClose();
       }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  const handleFocus = (e) => {
+  function handleFocus(e) {
     e.target.dataset.placeholder = e.target.placeholder;
     e.target.placeholder = "";
-  };
+  }
 
-  const handleBlur = (e) => {
+  function handleBlur(e) {
     if (e.target.value.trim() === "") {
       e.target.placeholder = e.target.dataset.placeholder;
     }
-  };
+  }
 
   async function uploadImageToCloudinary(file) {
     const formData = new FormData();
@@ -58,7 +62,7 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
     const res = await fetch(
-      `https://api.cloudinary.com/v1_1/kribji/image/upload`,
+      "https://api.cloudinary.com/v1_1/kribji/image/upload",
       {
         method: "POST",
         body: formData,
@@ -66,7 +70,6 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
     );
 
     const data = await res.json();
-    console.log("Cloudinary response raw:", data);
 
     if (!res.ok || !data.secure_url) {
       console.error("Cloudinary response error:", data);
@@ -76,20 +79,37 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
     return data.secure_url;
   }
 
+  function resetForm() {
+    setVenueName("");
+    setLocation("");
+    setCountry("");
+    setContinent("");
+    setPrice("");
+    setMaxGuests("");
+    setDescription("");
+    setWifi(false);
+    setBreakfast(false);
+    setParking(false);
+    setPets(false);
+    setMediaFile(null);
+    setError("");
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
     if (
-      !venueName ||
-      !location ||
-      !continent ||
-      !price ||
-      !maxGuests ||
-      !description ||
+      venueName.trim() === "" ||
+      location.trim() === "" ||
+      country.trim() === "" ||
+      continent.trim() === "" ||
+      price === "" ||
+      maxGuests === "" ||
+      description.trim() === "" ||
       !mediaFile
     ) {
-      setError("all fields are required");
+      setError("All fields are required.");
       return;
     }
 
@@ -97,22 +117,32 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
 
     try {
       const mediaUrl = await uploadImageToCloudinary(mediaFile);
-
-      const payload = {
-        name: venueName,
-        description,
-        media: [{ url: mediaUrl, alt: venueName }],
-        price: parseFloat(price),
-        maxGuests: parseInt(maxGuests, 10),
-        meta: { wifi, breakfast, parking, pets },
-        location: { address: location, continent },
-      };
-
       const token = localStorage.getItem("token");
 
       if (!token) {
         throw new Error("You are not logged in. Please log in again.");
       }
+
+      const payload = {
+        name: venueName,
+        description: `${description} ${APP_VENUE_TAG}`,
+        media: [{ url: mediaUrl, alt: venueName }],
+        price: parseFloat(price),
+        maxGuests: parseInt(maxGuests, 10),
+        meta: {
+          wifi,
+          breakfast,
+          parking,
+          pets,
+        },
+        location: {
+          address: location,
+          country,
+          continent,
+        },
+      };
+
+      console.log("Submitting venue payload:", payload);
 
       const response = await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues`, {
         method: "POST",
@@ -125,7 +155,6 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
       });
 
       const result = await response.json();
-      console.log("📦 Venue creation result:", result);
 
       if (!response.ok) {
         const errorMessage =
@@ -134,16 +163,20 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
       }
 
       const currentUser = JSON.parse(localStorage.getItem("user"));
-      if (result?.data?.owner?.name !== currentUser?.name) {
-        console.warn("⚠️ Venue was created but not linked to you as owner!");
-        console.warn("Returned owner:", result.data.owner);
-        console.warn("Expected owner:", currentUser?.name);
+
+      const apiOwnerEmail = result?.data?.owner?.email?.trim().toLowerCase();
+      const localUserEmail = currentUser?.email?.trim().toLowerCase();
+
+      if (apiOwnerEmail !== localUserEmail) {
+        console.log("→ API returned:", apiOwnerEmail);
+        console.log("→ Expected:", localUserEmail);
       }
 
+      resetForm();
       onVenueCreated?.();
       onClose();
     } catch (err) {
-      console.error("❌ Venue creation error:", err);
+      console.error("Venue creation error:", err);
       setError(err.message);
     } finally {
       setIsSubmitting(false);
@@ -154,11 +187,11 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
     <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-50">
       <div
         ref={modalRef}
-        className="w-full max-w-md mx-auto bg-[#FEFEFE] bg-opacity-70 p-6 rounded-md relative text-[#7A92A7]"
+        className="w-full max-w-md mx-auto bg-white p-6 rounded-md relative text-[#7A92A7]"
       >
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-[#7A92A7] text-xl leading-none hover:underline"
+          className="absolute top-2 right-2 text-[#7A92A7] text-xl hover:underline"
         >
           &times;
         </button>
@@ -184,7 +217,18 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
             onChange={(e) => setLocation(e.target.value)}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            placeholder="location"
+            placeholder="address or city"
+            className="w-full p-2 border-b border-gray-300 bg-transparent outline-none"
+            required
+          />
+
+          <input
+            type="text"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            placeholder="country"
             className="w-full p-2 border-b border-gray-300 bg-transparent outline-none"
             required
           />
@@ -207,9 +251,7 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            placeholder="price pr night"
+            placeholder="price per night"
             className="w-full p-2 border-b border-gray-300 bg-transparent outline-none"
             required
           />
@@ -218,8 +260,6 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
             type="number"
             value={maxGuests}
             onChange={(e) => setMaxGuests(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder="max guests"
             className="w-full p-2 border-b border-gray-300 bg-transparent outline-none"
             required
@@ -229,8 +269,6 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder="description"
             className="w-full p-2 border-b border-gray-300 bg-transparent outline-none"
             required
