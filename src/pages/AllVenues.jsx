@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Masonry from "react-masonry-css";
 import VenueCard from "../components/venues/VenueCard";
+import FilterModal from "../components/modals/FilterModal";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
 
 const breakpointColumnsObj = {
@@ -10,10 +11,22 @@ const breakpointColumnsObj = {
   480: 1,
 };
 
+const defaultFilters = {
+  price: 1000,
+  guests: 1,
+  wifi: false,
+  breakfast: false,
+  parking: false,
+  pets: false,
+};
+
 export default function AllVenues() {
   const [venues, setVenues] = useState([]);
+  const [filteredVenues, setFilteredVenues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [activeFilters, setActiveFilters] = useState(defaultFilters);
 
   useEffect(() => {
     (async () => {
@@ -36,27 +49,12 @@ export default function AllVenues() {
           );
         }
 
-        // 🧪 Log all venue names and descriptions
-        console.log("API returned:", data.data.length, "venues");
-        data.data.forEach((v) => {
-          console.log(`[${v.name}] →`, JSON.stringify(v.description));
-        });
-
-        // filter for 'kribji' tagged venues
-        const filtered = data.data.filter((venue) =>
+        const kribjiTagged = data.data.filter((venue) =>
           venue.description?.toLowerCase().includes("kribji")
         );
 
-        console.log(
-          "Descriptions with kribji:",
-          filtered.map((v) => v.description)
-        );
-
-        console.log(
-          "Filtered venues:",
-          filtered.map((v) => v.name)
-        );
-        setVenues(filtered);
+        setVenues(kribjiTagged);
+        setFilteredVenues(kribjiTagged);
       } catch (err) {
         console.error("Error fetching venues:", err);
         setError(err.message);
@@ -66,19 +64,54 @@ export default function AllVenues() {
     })();
   }, []);
 
+  function applyFilters(filters) {
+    setActiveFilters(filters);
+    setShowFilterModal(false);
+
+    const result = venues.filter((venue) => {
+      return (
+        venue.price <= filters.price &&
+        venue.maxGuests >= filters.guests &&
+        (!filters.wifi || venue.meta?.wifi) &&
+        (!filters.breakfast || venue.meta?.breakfast) &&
+        (!filters.parking || venue.meta?.parking) &&
+        (!filters.pets || venue.meta?.pets)
+      );
+    });
+
+    setFilteredVenues(result);
+  }
+
   if (loading) return <p className="text-center py-8">Loading venues...</p>;
   if (error) return <p className="text-center text-red-500 py-8">{error}</p>;
-  if (!venues.length)
+  if (!filteredVenues.length)
     return <p className="text-center py-8">No venues found.</p>;
 
   return (
     <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={() => setShowFilterModal(true)}
+          className="text-sm text-blue-600 underline"
+        >
+          Filter
+        </button>
+      </div>
+
+      {showFilterModal && (
+        <FilterModal
+          filters={activeFilters}
+          onClose={() => setShowFilterModal(false)}
+          onApply={applyFilters}
+        />
+      )}
+
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="flex -ml-4 w-auto"
         columnClassName="pl-4"
       >
-        {venues.map((venue) => (
+        {filteredVenues.map((venue) => (
           <div key={venue.id} className="mb-4">
             <VenueCard venue={venue} />
           </div>
