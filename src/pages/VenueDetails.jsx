@@ -53,6 +53,24 @@ export default function VenueDetails() {
       return;
     }
 
+    // 🔁 Convert form date values (yyyy-mm-dd) to ISO 8601
+    const formatToISO = (dateStr) => {
+      try {
+        return new Date(dateStr).toISOString();
+      } catch {
+        return "";
+      }
+    };
+
+    const payload = {
+      venueId: id,
+      dateFrom: formatToISO(booking.dateFrom),
+      dateTo: formatToISO(booking.dateTo),
+      guests: booking.guests,
+    };
+
+    console.log("Booking payload:", payload);
+
     try {
       const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/bookings`, {
         method: "POST",
@@ -61,10 +79,7 @@ export default function VenueDetails() {
           Authorization: `Bearer ${token}`,
           "X-Noroff-API-Key": NOROFF_API_KEY,
         },
-        body: JSON.stringify({
-          ...booking,
-          venueId: id,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
