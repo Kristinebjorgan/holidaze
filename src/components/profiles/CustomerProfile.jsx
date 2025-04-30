@@ -87,93 +87,104 @@ function CustomerProfile() {
 
   if (!user) return <p>Loading...</p>;
 
-  return (
-    <div className="p-6 max-w-xl mx-auto text-center text-[#7A92A7]">
-      <h1 className="text-xl font-bold mb-2 text-[#D94C4C]">
-        hallo, {user.name}
-      </h1>
+return (
+  <div className="flex flex-col items-center text-[#445667] font-sans text-[20px] lowercase min-h-screen pt-[250px]">
+    <h1 className="mb-10">hello, {user.name}</h1>
 
-      {user.avatar?.url && (
+    {user.avatar?.url && (
+      <>
         <img
           src={user.avatar.url}
           alt={user.avatar.alt}
-          className="w-20 h-20 mx-auto rounded-full object-cover mb-4"
+          className="w-[120px] h-[120px] object-cover mb-2"
         />
-      )}
+        <button
+          onClick={() => setShowEditModal(true)}
+          className="text-[10px] underline mb-10"
+        >
+          update
+        </button>
+      </>
+    )}
 
-      <button
-        onClick={() => setShowEditModal(true)}
-        className="text-sm text-blue-600 underline mb-2 block"
-      >
-        Edit profile
-      </button>
+    {showEditModal && (
+      <EditProfileModal onClose={() => setShowEditModal(false)} />
+    )}
 
-      <button onClick={handleLogout} className="text-sm text-red-500 underline">
-        Log out
-      </button>
+    <h2 className="mt-[316px] mb-[80px]">upcoming trips</h2>
 
-      {showEditModal && (
-        <EditProfileModal onClose={() => setShowEditModal(false)} />
-      )}
-
-      {bookings.length > 0 && (
-        <div className="mt-6 text-left">
-          <h2 className="text-md font-semibold mb-2">your bookings</h2>
-          <ul className="space-y-3 text-sm">
-            {bookings.map((booking) => (
-              <li
-                key={booking.id}
-                className="p-3 border rounded shadow-sm bg-white"
+    <div className="flex flex-col gap-16">
+      {bookings.map((booking) => (
+        <div
+          key={booking.id}
+          className="relative w-[900px] h-[420px] overflow-hidden group mx-[270px]"
+          style={{
+            backgroundImage: `url(${booking.venue?.media?.[0]?.url})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          {/* Hover overlay */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#ffffff88] backdrop-blur-sm flex items-end justify-center">
+            <div className="flex gap-8 pb-6">
+              <button
+                onClick={() => setViewingBooking(booking)}
+                className="text-xs underline hover:opacity-90"
               >
-                <strong>{booking.venue?.name}</strong>
-                <div>
-                  {new Date(booking.dateFrom).toLocaleDateString()} →{" "}
-                  {new Date(booking.dateTo).toLocaleDateString()}
-                </div>
-                <div>Guests: {booking.guests}</div>
+                view
+              </button>
+              <button
+                onClick={() => setEditingBooking(booking)}
+                className="text-xs underline hover:opacity-90"
+              >
+                edit
+              </button>
+              <button
+                onClick={() => handleDelete(booking)}
+                className="text-xs underline hover:opacity-90"
+              >
+                delete
+              </button>
+            </div>
+          </div>
 
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={() => setViewingBooking(booking)}
-                    className="text-blue-600 hover:underline text-xs"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => setEditingBooking(booking)}
-                    className="text-yellow-600 hover:underline text-xs"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(booking)}
-                    className="text-red-600 hover:underline text-xs"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {/* Info row */}
+          <div className="absolute bottom-0 left-0 right-0 px-[10px] py-3 flex justify-between bg-white/80 text-xs">
+            <div>
+              {booking.venue?.name?.toLowerCase()}, {booking.venue?.location?.city?.toLowerCase()}, {booking.venue?.location?.country?.toLowerCase()}
+            </div>
+            <div>
+              {new Date(booking.dateFrom).toLocaleDateString()} -{" "}
+              {new Date(booking.dateTo).toLocaleDateString()}
+            </div>
+          </div>
         </div>
-      )}
-
-      {viewingBooking && (
-        <ViewBookingModal
-          booking={viewingBooking}
-          onClose={() => setViewingBooking(null)}
-        />
-      )}
-
-      {editingBooking && (
-        <EditBookingModal
-          booking={editingBooking}
-          onClose={() => setEditingBooking(null)}
-          onUpdated={fetchBookings}
-        />
-      )}
+      ))}
     </div>
-  );
-}
 
+    <button
+      onClick={handleLogout}
+      className="mt-20 text-[12px] hover:underline"
+    >
+      log out
+    </button>
+
+    {viewingBooking && (
+      <ViewBookingModal
+        booking={viewingBooking}
+        onClose={() => setViewingBooking(null)}
+      />
+    )}
+
+    {editingBooking && (
+      <EditBookingModal
+        booking={editingBooking}
+        onClose={() => setEditingBooking(null)}
+        onUpdated={fetchBookings}
+      />
+    )}
+  </div>
+);
+
+}
 export default CustomerProfile;

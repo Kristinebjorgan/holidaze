@@ -5,7 +5,7 @@ import CustomerProfile from "./components/profiles/CustomerProfile";
 import ManagerProfile from "./components/profiles/ManagerProfile";
 import AllVenues from "./pages/AllVenues";
 import VenueDetails from "./pages/VenueDetails";
-
+import About from "./pages/About";
 
 export default function App() {
   return (
@@ -16,6 +16,7 @@ export default function App() {
         <Route path="/account/customer" element={<CustomerProfile />} />
         <Route path="/account/manager" element={<ManagerProfile />} />
         <Route path="/venues/:id" element={<VenueDetails />} />
+        <Route path="/about" element={<About />} />
       </Route>
     </Routes>
   );

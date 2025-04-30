@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import SearchPanel from "../components/SearchPanel"; // adjust path as needed
+import SearchPanel from "../components/SearchPanel"; // Adjust as needed
 
 export default function Header() {
   const [showSearch, setShowSearch] = useState(false);
@@ -9,15 +9,22 @@ export default function Header() {
 
   return (
     <>
-      <header className="flex justify-between items-center p-4 text-sm tracking-wide text-slate-500">
-        <div className="space-x-4">
-          <Link to="/">home</Link>
+      <header className="flex justify-between items-center px-6 py-4 text-sm text-slate-500 font-light lowercase">
+        {/* home + search */}
+        <div className="flex gap-6">
+          <Link to="/" className="hover:underline">
+            home
+          </Link>
           <button
             onClick={() => setShowSearch(true)}
             className="hover:underline"
           >
             search
           </button>
+        </div>
+
+        {/* account */}
+        <div>
           <Link
             to={
               user
@@ -26,7 +33,7 @@ export default function Header() {
                   : "/account/customer"
                 : "/auth"
             }
-            className="underline"
+            className="hover:underline"
           >
             account
           </Link>
