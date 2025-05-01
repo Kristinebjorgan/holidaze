@@ -12,7 +12,7 @@ const breakpointColumnsObj = {
 };
 
 const defaultFilters = {
-  price: 1000,
+  price: 100,
   guests: 1,
   wifi: false,
   breakfast: false,
@@ -89,12 +89,12 @@ export default function AllVenues() {
 
   return (
     <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-start mb-6">
         <button
           onClick={() => setShowFilterModal(true)}
-          className="text-sm text-blue-600 underline"
+          className="text-sm hover:underline text-[#7A92A7] lowercase"
         >
-          Filter
+          filter
         </button>
       </div>
 
@@ -112,7 +112,7 @@ export default function AllVenues() {
         columnClassName="pl-4"
       >
         {filteredVenues.map((venue) => (
-          <div key={venue.id} className="mb-4">
+          <div key={venue.id} className="mb-4 opacity-0 animate-fadeInSlow">
             <VenueCard venue={venue} />
           </div>
         ))}
