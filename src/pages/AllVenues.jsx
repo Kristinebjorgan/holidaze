@@ -3,6 +3,7 @@ import Masonry from "react-masonry-css";
 import VenueCard from "../components/venues/VenueCard";
 import FilterModal from "../components/modals/FilterModal";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
+import { useLocation } from "react-router-dom";
 
 const breakpointColumnsObj = {
   default: 3,
@@ -27,6 +28,10 @@ export default function AllVenues() {
   const [error, setError] = useState("");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [activeFilters, setActiveFilters] = useState(defaultFilters);
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const selectedCountry = queryParams.get("country");
 
   useEffect(() => {
     (async () => {
@@ -53,8 +58,16 @@ export default function AllVenues() {
           venue.description?.toLowerCase().includes("kribji")
         );
 
-        setVenues(kribjiTagged);
-        setFilteredVenues(kribjiTagged);
+        const filteredByCountry = selectedCountry
+          ? kribjiTagged.filter(
+              (venue) =>
+                venue.location?.country?.toLowerCase() ===
+                selectedCountry.toLowerCase()
+            )
+          : kribjiTagged;
+
+        setVenues(filteredByCountry);
+        setFilteredVenues(filteredByCountry);
       } catch (err) {
         console.error("Error fetching venues:", err);
         setError(err.message);
@@ -62,7 +75,7 @@ export default function AllVenues() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [location.search]); 
 
   function applyFilters(filters) {
     setActiveFilters(filters);

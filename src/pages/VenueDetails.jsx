@@ -20,7 +20,8 @@ export default function VenueDetails() {
       try {
         const res = await fetch(
           `${NOROFF_API_BASE_URL}/holidaze/venues/${id}`,
-          {
+          {xcode-select --install
+
             headers: {
               "X-Noroff-API-Key": NOROFF_API_KEY,
             },

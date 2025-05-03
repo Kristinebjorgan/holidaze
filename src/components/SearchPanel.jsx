@@ -1,58 +1,72 @@
 import { useState } from "react";
-
-const CONTINENTS = [
-  "Europe",
-  "Asia",
-  "Australia",
-  "Africa",
-  "North America",
-  "South America",
-];
+import { useNavigate } from "react-router-dom";
+import { CONTINENT_COUNTRY_MAP } from "../lib/continentCountryMap"; // Update path if needed
 
 export default function SearchPanel({ onClose }) {
   const [selectedContinent, setSelectedContinent] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const navigate = useNavigate();
+
+
+  const handleContinentClick = (continent) => {
+    setSelectedContinent(continent);
+    setSelectedCountry(""); // Reset selected country when switching continent
+  };
 
   return (
-    <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-50 p-6 flex items-center justify-center">
-      <div className="bg-white/80 p-6 rounded-xl w-full max-w-3xl shadow-lg text-center text-[#7A92A7]">
-        <div className="flex justify-between mb-6">
-          <h2 className="text-xl lowercase">search</h2>
-          <button
-            onClick={onClose}
-            className="text-sm text-red-500 hover:underline"
-          >
-            close
-          </button>
-        </div>
+    <div className="w-full bg-white/60 backdrop-blur-md border-b border-[#7A92A7]/20 px-6 py-10 text-[#7A92A7] lowercase tracking-wide">
+      {/* Close Button */}
+      <div className="flex justify-end mb-4">
+        <button onClick={onClose} className="text-sm hover:underline">
+          x
+        </button>
+      </div>
 
+      {/* Top Section: Filter Label + Search */}
+      <div className="text-left mb-10">
         <input
           type="text"
-          placeholder="search venues..."
-          className="w-full p-2 mb-6 border border-gray-300 rounded bg-transparent text-sm text-center"
+          placeholder="search"
+          className="w-full bg-transparent border-none border-b border-[#7A92A7]/30 text-sm focus:outline-none text-center"
         />
+      </div>
 
-        <div className="flex flex-wrap justify-center gap-4 text-sm mb-6">
-          {CONTINENTS.map((continent) => (
+      {/* Continent Selection */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-sm text-center mb-10">
+        {Object.keys(CONTINENT_COUNTRY_MAP).map((continentKey) => {
+          const label = continentKey.replace("-", " ");
+          return (
             <button
-              key={continent}
-              onClick={() => setSelectedContinent(continent)}
-              className={`px-3 py-1 rounded hover:bg-slate-200 ${
-                selectedContinent === continent ? "bg-slate-300" : ""
+              key={continentKey}
+              onClick={() => handleContinentClick(continentKey)}
+              className={`bg-[#dfeaf1] py-6 hover:opacity-90 ${
+                selectedContinent === continentKey
+                  ? "outline outline-1 outline-[#7A92A7]"
+                  : ""
               }`}
             >
-              {continent.toLowerCase()}
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Country Selection */}
+      {selectedContinent && CONTINENT_COUNTRY_MAP[selectedContinent] && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-center">
+          {CONTINENT_COUNTRY_MAP[selectedContinent].map((country) => (
+            <button
+              key={country}
+              onClick={() => {
+                setSelectedCountry(country);
+                navigate(`/venues?country=${encodeURIComponent(country)}`);
+              }}
+            >
+              {country}
             </button>
           ))}
         </div>
-
-        {selectedContinent && (
-          <div className="text-xs italic text-slate-500">
-            You selected: <strong>{selectedContinent}</strong>
-          </div>
-        )}
-
-        {/* Optional: Add country + city filtering here */}
-      </div>
+      )}
     </div>
   );
 }
