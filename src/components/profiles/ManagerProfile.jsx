@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddListingModal from "../modals/AddListingModal";
+import EditVenueModal from "../modals/EditListingModal";
 import ViewVenueModal from "../modals/ViewVenueModal";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config"; 
+
 
 function ManagerProfile() {
   const [user, setUser] = useState(null);
@@ -10,20 +12,15 @@ function ManagerProfile() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingVenue, setEditingVenue] = useState(null);
   const [viewingVenue, setViewingVenue] = useState(null);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
   useEffect(() => {
-    if (user?.name) {
-      fetchManagerVenues(user.name);
-    }
+    if (user?.name) fetchManagerVenues(user.name);
   }, [user]);
 
   const fetchManagerVenues = async (username) => {
@@ -45,16 +42,18 @@ function ManagerProfile() {
     }
   };
 
-const handleVenueCreated = () => {
-  setTimeout(() => {
-    if (user?.name) {
-      fetchManagerVenues(user.name); 
-    }
-  }, 500); 
+  const handleVenueCreated = () => {
+    setTimeout(() => {
+      if (user?.name) fetchManagerVenues(user.name);
+    }, 500);
+    setShowCreateModal(false);
+    setEditingVenue(null);
+  };
 
-  setShowCreateModal(false);
-  setEditingVenue(null);
-};
+  const handleVenueUpdated = (updatedVenue) => {
+    fetchManagerVenues(user.name);
+    setEditingVenue(null);
+  };
 
   const handleDeleteVenue = async (id) => {
     const confirm = window.confirm(
@@ -98,14 +97,14 @@ const handleVenueCreated = () => {
         onClick={handleLogout}
         className="text-sm text-red-500 underline mb-4"
       >
-        Log out
+        log out
       </button>
 
       <button
         onClick={() => setShowCreateModal(true)}
         className="text-blue-600 underline text-sm mb-6 block"
       >
-        + Add listing
+        + add listing
       </button>
 
       {showCreateModal && (
@@ -116,11 +115,10 @@ const handleVenueCreated = () => {
       )}
 
       {editingVenue && (
-        <AddListingModal
-          initialData={editingVenue}
-          mode="edit"
+        <EditVenueModal
+          venue={editingVenue}
           onClose={() => setEditingVenue(null)}
-          onVenueCreated={handleVenueCreated}
+          onUpdate={handleVenueUpdated}
         />
       )}
 
@@ -134,7 +132,7 @@ const handleVenueCreated = () => {
       <div className="mt-6 space-y-4">
         {venues.length === 0 && (
           <p className="text-gray-400 text-sm">
-            You haven't added any listings yet.
+            you haven't added any listings yet.
           </p>
         )}
 
@@ -145,7 +143,7 @@ const handleVenueCreated = () => {
           >
             <h3 className="text-[#7A92A7] font-semibold">{venue.name}</h3>
             <p className="text-gray-500">{venue.location?.address}</p>
-            <p className="text-gray-500">Price: ${venue.price}</p>
+            <p className="text-gray-500">price: ${venue.price}</p>
 
             {venue.media?.[0]?.url && (
               <img
