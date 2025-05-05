@@ -109,7 +109,7 @@ export default function VenueDetails() {
 
       {/* Title + Location */}
       <h1 className="text-xl font-light mb-1">{venue.name}</h1>
-      <p className="text-xs mb-6 text-slate-500">
+      <p className="text-xs mb-6">
         {venue.location?.address}, {venue.location?.country}
       </p>
 
@@ -191,8 +191,8 @@ export default function VenueDetails() {
             required
           />
 
-          <button type="submit" className="text-xs underline hover:opacity-80">
-            book now
+          <button type="submit" className="text-xs hover:underline hover:opacity-80">
+            book
           </button>
 
           {bookingSuccess && (

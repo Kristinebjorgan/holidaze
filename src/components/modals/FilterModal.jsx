@@ -91,6 +91,20 @@ export default function FilterModal({ filters, onClose, onApply }) {
           ))}
         </div>
 
+        {/* Sort Dropdown */}
+        <div className="mt-10 mb-6 text-center">
+          <label className="block mb-2 text-xs">sort by</label>
+          <select
+            value={localFilters.sort}
+            onChange={(e) => handleChange("sort", e.target.value)}
+            className="w-full bg-transparent border border-[#7A92A7]/30 p-2 text-xs focus:outline-none"
+          >
+            <option value="none">none</option>
+            <option value="price-asc">price: low to high</option>
+            <option value="price-desc">price: high to low</option>
+          </select>
+        </div>
+
         {/* Apply */}
         <button
           onClick={() => onApply(localFilters)}
