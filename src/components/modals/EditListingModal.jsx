@@ -1,5 +1,4 @@
-// src/components/modals/EditVenueModal.jsx
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config";
 
 export default function EditVenueModal({ venue, onClose, onUpdate }) {
@@ -20,6 +19,29 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
     },
     media: [...venue.media],
   });
+
+  const modalRef = useRef();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -74,26 +96,37 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white/80 p-6 w-full max-w-2xl border border-[#7A92A7]/20 text-[#7A92A7] lowercase tracking-wide relative overflow-y-auto max-h-[90vh]">
-        <button onClick={onClose} className="absolute top-2 right-4 text-xl">
+    <div
+      className="fixed inset-0 bg-[#FEFEFE]/60 backdrop-blur-sm z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        ref={modalRef}
+        className="bg-[#FEFEFE]/80 backdrop-blur-md p-6 w-full max-w-2xl text-[#7A92A7] lowercase tracking-wide relative overflow-y-auto max-h-[90vh]"
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close modal"
+          className="absolute top-2 right-4 text-xl hover:underline"
+        >
           ×
         </button>
-        <h2 className="text-md mb-6 text-center">edit venue</h2>
 
         <input
           name="name"
           value={formData.name}
           onChange={handleInputChange}
-          className="w-full p-2 border mb-4 bg-transparent"
+          className="w-full p-2 border-b bg-transparent mb-4 outline-none"
           placeholder="venue name"
         />
+
         <textarea
           name="description"
           value={formData.description}
           onChange={handleInputChange}
           rows={3}
-          className="w-full p-2 border mb-4 bg-transparent"
+          className="w-full p-2 border-b bg-transparent mb-4 outline-none"
           placeholder="description"
         />
 
@@ -103,7 +136,7 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
             type="number"
             value={formData.price}
             onChange={handleInputChange}
-            className="w-1/2 p-2 border bg-transparent"
+            className="w-1/2 p-2 border-b bg-transparent outline-none"
             placeholder="price"
           />
           <input
@@ -111,22 +144,23 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
             type="number"
             value={formData.maxGuests}
             onChange={handleInputChange}
-            className="w-1/2 p-2 border bg-transparent"
+            className="w-1/2 p-2 border-b bg-transparent outline-none"
             placeholder="max guests"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {Object.keys(formData.meta).map((key) => (
+        <div className="grid grid-cols-2 gap-3 text-sm mb-6">
+          {Object.entries(formData.meta).map(([key, val]) => (
             <label
               key={key}
-              className="flex justify-between items-center border p-2 bg-transparent cursor-pointer"
+              className="flex justify-between items-center border-b py-1 px-2 bg-transparent"
             >
-              {key}
+              <span>{key}</span>
               <input
                 type="checkbox"
-                checked={formData.meta[key]}
+                checked={val}
                 onChange={() => handleMetaToggle(key)}
+                className="appearance-none w-4 h-4 border border-[#7A92A7] checked:bg-[#7A92A7] checked:border-[#7A92A7]"
               />
             </label>
           ))}
@@ -142,7 +176,7 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
                 location: { ...prev.location, address: e.target.value },
               }))
             }
-            className="w-1/2 p-2 border bg-transparent"
+            className="w-1/2 p-2 border-b bg-transparent outline-none"
             placeholder="address"
           />
           <input
@@ -154,12 +188,12 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
                 location: { ...prev.location, country: e.target.value },
               }))
             }
-            className="w-1/2 p-2 border bg-transparent"
+            className="w-1/2 p-2 border-b bg-transparent outline-none"
             placeholder="country"
           />
         </div>
 
-        <p className="text-xs mb-2">drag to reorder images</p>
+        <p className="text-xs mb-2">drag to reorder</p>
         <div className="flex flex-wrap gap-3 mb-6">
           {formData.media.map((img, idx) => (
             <img
@@ -177,9 +211,9 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
 
         <button
           onClick={handleUpdate}
-          className="text-xs underline hover:opacity-80 block mx-auto"
+          className="text-xs hover:underline hover:opacity-80 block mx-auto"
         >
-          save changes
+          save
         </button>
       </div>
     </div>

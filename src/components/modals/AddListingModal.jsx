@@ -1,4 +1,3 @@
-// 📦 Top imports
 import { useState, useEffect, useRef } from "react";
 import {
   CLOUDINARY_UPLOAD_PRESET,
@@ -37,15 +36,27 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
 
   const modalRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
-        onClose();
-      }
+useEffect(() => {
+  function handleClickOutside(e) {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      onClose();
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  }
+
+  function handleEscapeKey(e) {
+    if (e.key === "Escape") {
+      onClose();
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("keydown", handleEscapeKey);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("keydown", handleEscapeKey);
+  };
+}, [onClose]);
+
 
   async function uploadImageToCloudinary(file) {
     const formData = new FormData();
@@ -155,7 +166,7 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
     <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-50">
       <div
         ref={modalRef}
-        className="w-full max-w-md bg-white p-6 rounded-md text-[#7A92A7] relative"
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#FEFEFE]/70 backdrop-blur-md p-6 text-[#7A92A7] relative"
       >
         <button
           onClick={onClose}
@@ -163,7 +174,6 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
         >
           ×
         </button>
-        <h2 className="text-2xl mb-4 lowercase">add listing</h2>
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-sm">
@@ -222,20 +232,34 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
             required
           />
 
-          <div className="py-4">
+          <div className="flex flex-col items-center gap-2 py-4">
             <input
               type="file"
               multiple
               accept="image/*"
+              id="mediaUpload"
               onChange={(e) =>
                 setMediaFiles((prev) => [
                   ...prev,
                   ...Array.from(e.target.files || []),
                 ])
               }
-              className="w-full"
+              className="hidden"
               required
             />
+
+            <label
+              htmlFor="mediaUpload"
+              className="text-sm text-[#7A92A7] px-4 py-1 cursor-pointer hover:underline"
+            >
+              files
+            </label>
+
+            <span className="text-[11px] text-[#7A92A7]">
+              {mediaFiles.length
+                ? `${mediaFiles.length} file(s) selected`
+                : "No file chosen"}
+            </span>
           </div>
 
           {!!mediaFiles.length && (
@@ -245,7 +269,7 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
                   <img
                     src={URL.createObjectURL(file)}
                     alt={`preview-${index}`}
-                    className="w-full h-24 object-cover rounded"
+                    className="w-full h-24 object-cover"
                   />
                   <button
                     type="button"

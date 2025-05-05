@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config";
+import { uploadImageToCloudinary } from "../../utils/uploadImageToCloudinary";
+
 
 export default function EditProfileForm() {
   const [bio, setBio] = useState("");
@@ -9,8 +11,9 @@ export default function EditProfileForm() {
   const user = JSON.parse(localStorage.getItem("user"));
   const profileName = user?.name;
   const token = localStorage.getItem("token");
+  const [avatarFile, setAvatarFile] = useState(null);
 
-  // fetch profile
+
   useEffect(() => {
     if (!profileName) return;
 
@@ -25,7 +28,6 @@ export default function EditProfileForm() {
             },
           }
         );
-
         const data = await res.json();
         setBio(data.data.bio || "");
         setAvatarUrl(data.data.avatar?.url || "");
@@ -36,78 +38,85 @@ export default function EditProfileForm() {
 
     fetchProfile();
   }, [profileName]);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
 
-  // submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+  try {
+    let uploadedAvatarUrl = avatarUrl;
+
+    if (avatarFile) {
+      uploadedAvatarUrl = await uploadImageToCloudinary(avatarFile);
+    }
 
     const payload = {
       bio,
-      avatar: avatarUrl
-        ? { url: avatarUrl, alt: `${profileName}'s avatar` }
+      avatar: uploadedAvatarUrl
+        ? { url: uploadedAvatarUrl, alt: `${profileName}'s avatar` }
         : undefined,
     };
 
-    try {
-      const res = await fetch(
-        `${NOROFF_API_BASE_URL}/holidaze/profiles/${profileName}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "X-Noroff-API-Key": NOROFF_API_KEY,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+    const res = await fetch(
+      `${NOROFF_API_BASE_URL}/holidaze/profiles/${profileName}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-Noroff-API-Key": NOROFF_API_KEY,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-      const data = await res.json();
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.errors?.[0]?.message || "Update failed.");
 
-      if (!res.ok)
-        throw new Error(data.errors?.[0]?.message || "Profile update failed.");
+    setMessage("profile updated successfully!");
+    const updatedUser = { ...user, ...data.data };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    window.dispatchEvent(new Event("profile-updated"));
+  } catch (err) {
+    console.error("Update failed:", err);
+    setMessage(err.message);
+  }
+};
 
-      setMessage("profile updated successfully!");
-
-      // update localStorage if avatar changed
-      const updatedUser = { ...user, ...data.data };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    } catch (err) {
-      console.error("update failed:", err);
-      setMessage(` ${err.message}`);
-    }
-  };
 
   return (
     <form
       onSubmit={handleSubmit}
       className="space-y-4 text-sm text-[#7A92A7] max-w-md mx-auto"
     >
-      <h2 className="text-lg font-semibold mb-2">Edit Profile</h2>
-
       <textarea
         value={bio}
         onChange={(e) => setBio(e.target.value)}
         placeholder="Update your bio"
-        className="w-full p-2 border border-gray-300 rounded"
+        className="w-full bg-transparent p-2 outline-none"
       />
 
-      <input
-        type="url"
-        value={avatarUrl}
-        onChange={(e) => setAvatarUrl(e.target.value)}
-        placeholder="Avatar image URL"
-        className="w-full p-2 border border-gray-300 rounded"
-      />
+      <div className="text-center">
+        <label className="inline-block text-xs hover:underline cursor-pointer hover:opacity-80 mb-1">
+          choose
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setAvatarFile(e.target.files[0])}
+            className="hidden"
+          />
+        </label>
+        <p className="text-[10px] mt-1 lowercase">
+          {avatarFile?.name || "no file"}
+        </p>
+      </div>
 
-      {message && <p className="text-sm mt-2">{message}</p>}
+      {message && <p className="text-xs">{message}</p>}
 
       <button
         type="submit"
-        className="bg-[#3C6FF0] text-white px-4 py-2 rounded uppercase tracking-wide"
+        className="text-sm text-[#7A92A7] hover:underline hover:opacity-80"
       >
-        save changes
+        save
       </button>
     </form>
   );

@@ -10,25 +10,39 @@ export default function EditProfileModal({ onClose }) {
         onClose();
       }
     };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-white/60 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-[#FEFEFE]/60 backdrop-blur-sm flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+    >
       <div
         ref={modalRef}
-        className="max-w-md w-full bg-white/80 backdrop-blur-md p-6 rounded-md text-[#7A92A7] relative"
+        className="max-w-md w-full bg-[#FEFEFE]/80 backdrop-blur-md p-6 text-[#7A92A7] relative"
       >
-        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-xl leading-none text-[#7A92A7] hover:underline"
+          aria-label="Close modal"
+          className="absolute top-2 right-3 text-xl leading-none hover:underline"
         >
           &times;
         </button>
 
-        {/* Form inside the modal */}
         <EditProfileForm />
       </div>
     </div>

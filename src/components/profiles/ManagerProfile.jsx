@@ -3,16 +3,19 @@ import { useNavigate } from "react-router-dom";
 import AddListingModal from "../modals/AddListingModal";
 import EditVenueModal from "../modals/EditListingModal";
 import ViewVenueModal from "../modals/ViewVenueModal";
-import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config"; 
-
+import EditProfileModal from "../modals/EditProfileModal";
+import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config";
 
 function ManagerProfile() {
   const [user, setUser] = useState(null);
   const [venues, setVenues] = useState([]);
+  const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingVenue, setEditingVenue] = useState(null);
   const [viewingVenue, setViewingVenue] = useState(null);
+  const [localPublishStatus, setLocalPublishStatus] = useState({});
   const navigate = useNavigate();
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -36,11 +39,32 @@ function ManagerProfile() {
         }
       );
       const data = await response.json();
-      setVenues(data.data || []);
+      const venuesData = data.data || [];
+      setVenues(venuesData);
+
+      // Initialize local publish status (default to true)
+      const publishState = {};
+      venuesData.forEach((v) => {
+        publishState[v.id] = true;
+      });
+      setLocalPublishStatus(publishState);
     } catch (error) {
       console.error("Failed to fetch venues:", error);
     }
   };
+
+useEffect(() => {
+  const handleProfileUpdate = () => {
+    const updatedUser = JSON.parse(localStorage.getItem("user"));
+    setUser(updatedUser);
+  };
+
+  window.addEventListener("profile-updated", handleProfileUpdate);
+  return () => {
+    window.removeEventListener("profile-updated", handleProfileUpdate);
+  };
+}, []);
+
 
   const handleVenueCreated = () => {
     setTimeout(() => {
@@ -50,17 +74,13 @@ function ManagerProfile() {
     setEditingVenue(null);
   };
 
-  const handleVenueUpdated = (updatedVenue) => {
+  const handleVenueUpdated = () => {
     fetchManagerVenues(user.name);
     setEditingVenue(null);
   };
 
   const handleDeleteVenue = async (id) => {
-    const confirm = window.confirm(
-      "Are you sure you want to delete this venue?"
-    );
-    if (!confirm) return;
-
+    if (!window.confirm("Are you sure you want to delete this venue?")) return;
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues/${id}`, {
@@ -70,13 +90,18 @@ function ManagerProfile() {
           "X-Noroff-API-Key": NOROFF_API_KEY,
         },
       });
-
       if (!res.ok) throw new Error("Delete failed");
       fetchManagerVenues(user.name);
     } catch (err) {
-      console.error("Delete failed:", err);
       alert("Could not delete venue.");
     }
+  };
+
+  const togglePublish = (venueId) => {
+    setLocalPublishStatus((prev) => ({
+      ...prev,
+      [venueId]: !prev[venueId],
+    }));
   };
 
   const handleLogout = () => {
@@ -85,26 +110,114 @@ function ManagerProfile() {
     navigate("/auth");
   };
 
+  const filteredVenues = venues.filter((v) =>
+    v.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (!user) return <p>Loading...</p>;
 
   return (
-    <div className="p-6 text-center">
-      <h1 className="text-xl font-bold mb-2 text-[#D94C4C]">
-        welcome, {user.name}
-      </h1>
+    <section className="px-4 py-10 text-[#7A92A7] max-w-5xl mx-auto text-center">
+      <div className="mb-6">
+        <h1 className="text-sm mb-4 lowercase text-[#7A92A7]">
+          hello, {user.name}
+        </h1>
+        {user.avatar?.url ? (
+          <img
+            src={user.avatar.url}
+            alt={user.avatar.alt || "avatar"}
+            className="w-16 h-16 mx-auto object-cover mb-1"
+          />
+        ) : (
+          <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 rounded-full mb-1" />
+        )}
+        {user.bio && (
+          <p className="text-xs text-[#7A92A7] mb-2 max-w-xs mx-auto">
+            {user.bio}
+          </p>
+        )}
+        <button
+          className="text-xs text-[#7A92A7] hover:underline hover:opacity-80"
+          onClick={() => setShowEditProfile(true)}
+        >
+          edit
+        </button>
+      </div>
 
-      <button
-        onClick={handleLogout}
-        className="text-sm text-red-500 underline mb-4"
-      >
-        log out
-      </button>
+      <div className="bg-white/70 backdrop-blur-md p-4 mb-6 text-sm grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div>
+          <p className="text-xs text-slate-400">listings</p>
+          <p>{venues.length}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-400">bookings</p>
+          <p>{venues.reduce((sum, v) => sum + (v._count?.bookings || 0), 0)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-400">occupancy</p>
+          <p>
+            {(() => {
+              let totalBookedDays = 0;
+              let totalSpanDays = 0;
+
+              venues.forEach((venue) => {
+                const bookings = venue.bookings || [];
+                bookings.forEach((b) => {
+                  const start = new Date(b.dateFrom);
+                  const end = new Date(b.dateTo);
+                  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                  totalBookedDays += days;
+                });
+
+                if (bookings.length) {
+                  const first = new Date(
+                    Math.min(...bookings.map((b) => new Date(b.dateFrom)))
+                  );
+                  const last = new Date(
+                    Math.max(...bookings.map((b) => new Date(b.dateTo)))
+                  );
+                  const span = Math.ceil(
+                    (last - first) / (1000 * 60 * 60 * 24)
+                  );
+                  totalSpanDays += span;
+                }
+              });
+
+              const percentage =
+                totalSpanDays > 0
+                  ? Math.round((totalBookedDays / totalSpanDays) * 100)
+                  : 0;
+              return `${percentage}%`;
+            })()}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-400">avg. price</p>
+          <p>
+            €
+            {venues.length
+              ? Math.round(
+                  venues.reduce((sum, v) => sum + (v.price || 0), 0) /
+                    venues.length
+                )
+              : 0}
+          </p>
+        </div>
+      </div>
+
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="search your listings"
+        className="w-full bg-transparent text-sm text-center mb-6 focus:outline-none"
+      />
 
       <button
         onClick={() => setShowCreateModal(true)}
-        className="text-blue-600 underline text-sm mb-6 block"
+        className="text-sm text-[#7A92A7] hover:underline mb-10"
       >
-        + add listing
+        add
       </button>
 
       {showCreateModal && (
@@ -113,7 +226,6 @@ function ManagerProfile() {
           onVenueCreated={handleVenueCreated}
         />
       )}
-
       {editingVenue && (
         <EditVenueModal
           venue={editingVenue}
@@ -121,49 +233,75 @@ function ManagerProfile() {
           onUpdate={handleVenueUpdated}
         />
       )}
-
       {viewingVenue && (
         <ViewVenueModal
           venue={viewingVenue}
           onClose={() => setViewingVenue(null)}
         />
       )}
+      {showEditProfile && (
+        <EditProfileModal onClose={() => setShowEditProfile(false)} />
+      )}
 
-      <div className="mt-6 space-y-4">
-        {venues.length === 0 && (
-          <p className="text-gray-400 text-sm">
-            you haven't added any listings yet.
-          </p>
+      <div className="grid gap-12">
+        {filteredVenues.length === 0 ? (
+          <p className="text-gray-400 text-sm">no listings match your search</p>
+        ) : (
+          filteredVenues.map((venue) => {
+            const isPublished = localPublishStatus[venue.id];
+
+            return (
+              <div key={venue.id} className="text-left text-sm text-[#7A92A7]">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-sm text-s">{venue.name}</h3>
+                </div>
+
+                <p className="text-xs mb-1">{venue.location?.address}</p>
+                <p className="text-xs mb-2">€{venue.price}</p>
+
+                {venue.media?.[0]?.url && (
+                  <img
+                    src={venue.media[0].url}
+                    alt={venue.media[0].alt}
+                    className="w-full h-40 object-cover mb-4"
+                  />
+                )}
+
+                <div className="flex justify-center gap-4 text-xs">
+                  <button
+                    className="hover:underline"
+                    onClick={() => setViewingVenue(venue)}
+                  >
+                    view
+                  </button>
+                  <button
+                    className="hover:underline"
+                    onClick={() => setEditingVenue(venue)}
+                  >
+                    edit
+                  </button>
+                  <button
+                    className="hover:underline"
+                    onClick={() => handleDeleteVenue(venue.id)}
+                  >
+                    delete
+                  </button>
+                </div>
+              </div>
+            );
+          })
         )}
-
-        {venues.map((venue) => (
-          <div
-            key={venue.id}
-            className="p-4 border border-gray-200 rounded text-left text-sm"
-          >
-            <h3 className="text-[#7A92A7] font-semibold">{venue.name}</h3>
-            <p className="text-gray-500">{venue.location?.address}</p>
-            <p className="text-gray-500">price: ${venue.price}</p>
-
-            {venue.media?.[0]?.url && (
-              <img
-                src={venue.media[0].url}
-                alt={venue.media[0].alt}
-                className="w-full h-40 object-cover mt-2 rounded"
-              />
-            )}
-
-            <div className="flex gap-3 mt-3 text-xs text-blue-600 underline">
-              <button onClick={() => setViewingVenue(venue)}>view</button>
-              <button onClick={() => setEditingVenue(venue)}>edit</button>
-              <button onClick={() => handleDeleteVenue(venue.id)}>
-                delete
-              </button>
-            </div>
-          </div>
-        ))}
       </div>
-    </div>
+
+      <div className="mt-20">
+        <button
+          onClick={handleLogout}
+          className="text-xs text-gray-400 hover:text-gray-600"
+        >
+          log out
+        </button>
+      </div>
+    </section>
   );
 }
 

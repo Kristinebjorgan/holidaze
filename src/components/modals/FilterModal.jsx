@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function FilterModal({ filters, onClose, onApply }) {
   const [localFilters, setLocalFilters] = useState(filters);
+  const modalRef = useRef();
 
   const handleChange = (key, value) => {
     setLocalFilters((prev) => ({ ...prev, [key]: value }));
@@ -11,12 +12,28 @@ export default function FilterModal({ filters, onClose, onApply }) {
     setLocalFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 bg-white/40 backdrop-blur-sm flex items-center justify-center">
-      <div className="bg-white/80 border border-[#7A92A7]/20 text-[#7A92A7] w-full max-w-md p-8 text-sm lowercase tracking-wide relative">
+      <div
+        ref={modalRef}
+        className="bg-white/80 border border-[#7A92A7]/20 text-[#7A92A7] w-full max-w-md p-8 text-sm lowercase tracking-wide relative"
+        role="dialog"
+        aria-modal="true"
+      >
         <button
           onClick={onClose}
           className="absolute top-2 right-4 text-xl leading-none hover:underline"
+          aria-label="Close filter modal"
         >
           ×
         </button>
@@ -61,14 +78,14 @@ export default function FilterModal({ filters, onClose, onApply }) {
           {["wifi", "breakfast", "parking", "pets"].map((key) => (
             <label
               key={key}
-              className="flex justify-between items-center w-40 mb-4"
+              className="flex justify-between items-center w-40 mb-4 cursor-pointer"
             >
               <span className="tracking-wide">{key}</span>
               <input
                 type="checkbox"
                 checked={localFilters[key]}
                 onChange={() => toggle(key)}
-                className="w-5 h-5 border border-[#7A92A7] rounded-none appearance-none checked:border-[#7A92A7]"
+                className="w-5 h-5 shrink-0 border border-[#7A92A7] rounded-none appearance-none checked:border-[#7A92A7] checked:bg-[#7A92A7] focus:outline-none"
               />
             </label>
           ))}

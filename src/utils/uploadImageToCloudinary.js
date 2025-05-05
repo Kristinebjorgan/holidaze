@@ -12,7 +12,6 @@ export async function uploadImageToCloudinary(file) {
     {
       method: "POST",
       body: formData,
-      // 🚫 Don't add any headers!
     }
   );
 

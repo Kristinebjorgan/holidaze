@@ -1,4 +1,3 @@
-// src/components/modals/ViewBookingModal.jsx
 import { useEffect, useRef } from "react";
 
 export default function ViewBookingModal({ booking, onClose }) {
@@ -10,24 +9,39 @@ export default function ViewBookingModal({ booking, onClose }) {
         onClose();
       }
     };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-white/40 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 bg-white/40 backdrop-blur-sm z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+    >
       <div
         ref={modalRef}
-        className="bg-white/80 backdrop-blur-md rounded p-6 w-full max-w-md text-[#7A92A7] relative"
+        className="bg-white/80 backdrop-blur-md p-6 w-full max-w-md text-[#7A92A7] relative"
       >
         <button
           onClick={onClose}
-          className="absolute top-2 right-4 text-xl text-[#7A92A7] hover:underline"
+          aria-label="Close modal"
+          className="absolute top-2 right-4 text-xl hover:underline"
         >
           ×
         </button>
-
-        <h2 className="text-lg mb-4">Booking Details</h2>
 
         <p>
           <strong>Venue:</strong> {booking.venue?.name}

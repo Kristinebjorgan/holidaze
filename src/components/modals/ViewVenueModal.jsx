@@ -29,36 +29,51 @@ export default function ViewVenueModal({ venue, onClose }) {
     fetchBookings();
   }, [venue.id]);
 
-  // Close modal if clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      onClose();
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [onClose]);
+
 
   return (
-    <div className="fixed inset-0 bg-white/60 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-white/60 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+    >
       <div
         ref={modalRef}
-        className="max-w-md w-full bg-white/80 backdrop-blur-md p-6 rounded-md text-[#7A92A7] relative"
+        className="max-w-md w-full bg-white/80 backdrop-blur-md p-6 text-[#7A92A7] relative"
       >
-        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-xl leading-none text-[#7A92A7] hover:underline"
+          aria-label="Close modal"
+          className="absolute top-2 right-3 text-xl leading-none hover:underline"
         >
           &times;
         </button>
 
-        {/* Venue info */}
-        <h2 className="text-xl font-semibold mb-2">{venue.name}</h2>
+        <h2 className="text-l mb-2">{venue.name}</h2>
         <p className="text-sm mb-1">{venue.description}</p>
-        <p className="text-xs text-gray-500 mb-2">{venue.location?.address}</p>
-        <p className="text-sm mb-4">Price: ${venue.price} / night</p>
+        <p className="text-sm underline mb-2">{venue.location?.address}</p>
+        <p className="text-sm mb-4">Price €{venue.price} / night</p>
 
         {venue.media?.[0]?.url && (
           <img
@@ -68,39 +83,37 @@ export default function ViewVenueModal({ venue, onClose }) {
           />
         )}
 
-        {/* Meta flags */}
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
           {venue.meta?.wifi && (
-            <span className="px-2 py-1 bg-gray-100 rounded">WiFi</span>
+            <span className="px-2 py-1 bg-gray-100">WiFi</span>
           )}
           {venue.meta?.breakfast && (
-            <span className="px-2 py-1 bg-gray-100 rounded">Breakfast</span>
+            <span className="px-2 py-1 bg-gray-100">Breakfast</span>
           )}
           {venue.meta?.parking && (
-            <span className="px-2 py-1 bg-gray-100 rounded">Parking</span>
+            <span className="px-2 py-1 bg-gray-100">Parking</span>
           )}
           {venue.meta?.pets && (
-            <span className="px-2 py-1 bg-gray-100 rounded">Pets allowed</span>
+            <span className="px-2 py-1 bg-gray-100">Pets</span>
           )}
         </div>
 
-        {/* Bookings */}
-        <h3 className="text-sm font-medium mb-1">Bookings</h3>
+        <h3 className="text-sm mb-1">Bookings</h3>
         {bookings.length === 0 ? (
-          <p className="text-gray-400 text-sm">No bookings yet.</p>
+          <p className="text-sm">No bookings yet.</p>
         ) : (
           <ul className="text-xs text-left max-h-40 overflow-y-auto space-y-2">
             {bookings.map((b) => (
               <li key={b.id} className="bg-gray-100 p-2 rounded">
                 <div>
-                  <strong>From:</strong>{" "}
+                  <strong>From</strong>{" "}
                   {new Date(b.dateFrom).toLocaleDateString()}
                 </div>
                 <div>
-                  <strong>To:</strong> {new Date(b.dateTo).toLocaleDateString()}
+                  <strong>To</strong> {new Date(b.dateTo).toLocaleDateString()}
                 </div>
                 <div>
-                  <strong>Guests:</strong> {b.guests}
+                  <strong>Guests</strong> {b.guests}
                 </div>
               </li>
             ))}
