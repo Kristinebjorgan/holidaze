@@ -86,13 +86,13 @@ const handleSubmit = async (e) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 text-sm text-[#7A92A7] max-w-md mx-auto"
+      className="space-y-4 text-sm text-[#7A92A7] max-w-md mx-auto text-center"
     >
       <textarea
         value={bio}
         onChange={(e) => setBio(e.target.value)}
-        placeholder="Update your bio"
-        className="w-full bg-transparent p-2 outline-none"
+        placeholder="edit bio"
+        className="w-full bg-transparent p-2 outline-none text-center placeholder:text-[#7A92A7]"
       />
 
       <div className="text-center">

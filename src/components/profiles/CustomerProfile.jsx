@@ -3,14 +3,18 @@ import { useNavigate } from "react-router-dom";
 import EditProfileModal from "../modals/EditProfileModal";
 import ViewBookingModal from "../modals/ViewBookingModal";
 import EditBookingModal from "../modals/EditBookingModal";
+import ConfirmCancelModal from "../modals/ConfirmCancelModal";
+import ReviewBookingModal from "../modals/ReviewBookingModal";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config";
 
-function CustomerProfile() {
+export default function CustomerProfile() {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [viewingBooking, setViewingBooking] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
+  const [cancelBooking, setCancelBooking] = useState(null);
+  const [reviewBooking, setReviewBooking] = useState(null);
 
   const navigate = useNavigate();
 
@@ -22,7 +26,6 @@ function CustomerProfile() {
   const fetchBookings = async () => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
-
     if (!token || !user?.name) return;
 
     try {
@@ -35,13 +38,9 @@ function CustomerProfile() {
           },
         }
       );
-
       const data = await res.json();
-      if (!res.ok)
-        throw new Error(
-          data.errors?.[0]?.message || "Could not load bookings."
-        );
-      setBookings(data.data);
+      if (!res.ok) throw new Error(data.errors?.[0]?.message || "Could not load bookings.");
+      setBookings(data.data.sort((a, b) => new Date(b.dateFrom) - new Date(a.dateFrom)));
     } catch (err) {
       console.error("Booking fetch error:", err);
     }
@@ -57,134 +56,158 @@ function CustomerProfile() {
     navigate("/auth");
   };
 
-  const handleDelete = async (booking) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this booking?"
-    );
-    if (!confirmDelete) return;
+  const today = new Date();
 
-    const token = localStorage.getItem("token");
-
-    try {
-      const res = await fetch(
-        `${NOROFF_API_BASE_URL}/holidaze/bookings/${booking.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "X-Noroff-API-Key": NOROFF_API_KEY,
-          },
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to delete booking");
-
-      setBookings((prev) => prev.filter((b) => b.id !== booking.id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  if (!user) return <p>Loading...</p>;
-
-return (
-  <div className="flex flex-col items-center text-[#445667] font-sans text-[20px] lowercase min-h-screen pt-[250px]">
-    <h1 className="mb-10">hello, {user.name}</h1>
-
-    {user.avatar?.url && (
-      <>
-        <img
-          src={user.avatar.url}
-          alt={user.avatar.alt}
-          className="w-[120px] h-[120px] object-cover mb-2"
-        />
+  return (
+    <section className="px-4 py-10 text-[#7A92A7] max-w-5xl mx-auto text-center">
+      <div className="mb-6">
+        <h1 className="text-sm mb-4 lowercase">hello, {user?.name}</h1>
+        {user?.avatar?.url ? (
+          <img
+            src={user.avatar.url}
+            alt={user.avatar.alt || "avatar"}
+            className="w-16 h-16 mx-auto object-cover rounded-full mb-1"
+          />
+        ) : (
+          <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 mb-1" />
+        )}
         <button
           onClick={() => setShowEditModal(true)}
-          className="text-[10px] underline mb-10"
+          className="text-xs hover:underline hover:opacity-80"
         >
           update
         </button>
-      </>
-    )}
+      </div>
 
-    {showEditModal && (
-      <EditProfileModal onClose={() => setShowEditModal(false)} />
-    )}
+      <h2 className="text-sm mb-10">upcoming trips</h2>
 
-    <h2 className="mt-[316px] mb-[80px]">upcoming trips</h2>
+      <div className="grid gap-12 text-left">
+        {bookings.length === 0 ? (
+          <p className="text-gray-400 text-sm">no trips yet</p>
+        ) : (
+          bookings.map((booking) => {
+            const isPast =
+              new Date(booking.dateTo).getTime() < today.setHours(0, 0, 0, 0);
+            const formattedFrom = new Date(booking.dateFrom).toLocaleDateString(
+              "en-GB"
+            );
+            const formattedTo = new Date(booking.dateTo).toLocaleDateString(
+              "en-GB"
+            );
 
-    <div className="flex flex-col gap-16">
-      {bookings.map((booking) => (
-        <div
-          key={booking.id}
-          className="relative w-[900px] h-[420px] overflow-hidden group mx-[270px]"
-          style={{
-            backgroundImage: `url(${booking.venue?.media?.[0]?.url})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          {/* Hover overlay */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#ffffff88] backdrop-blur-sm flex items-end justify-center">
-            <div className="flex gap-8 pb-6">
-              <button
-                onClick={() => setViewingBooking(booking)}
-                className="text-xs underline hover:opacity-90"
-              >
-                view
-              </button>
-              <button
-                onClick={() => setEditingBooking(booking)}
-                className="text-xs underline hover:opacity-90"
-              >
-                edit
-              </button>
-              <button
-                onClick={() => handleDelete(booking)}
-                className="text-xs underline hover:opacity-90"
-              >
-                delete
-              </button>
-            </div>
-          </div>
-
-          {/* Info row */}
-          <div className="absolute bottom-0 left-0 right-0 px-[10px] py-3 flex justify-between bg-white/80 text-xs">
-            <div>
-              {booking.venue?.name?.toLowerCase()}, {booking.venue?.location?.city?.toLowerCase()}, {booking.venue?.location?.country?.toLowerCase()}
-            </div>
-            <div>
-              {new Date(booking.dateFrom).toLocaleDateString()} -{" "}
-              {new Date(booking.dateTo).toLocaleDateString()}
-            </div>
-          </div>
-        </div>
-      ))}
+return (
+  <div key={booking.id} className="space-y-3 relative">
+    {/* Venue Image with optional sheer overlay */}
+    <div
+      className="h-64 bg-cover bg-center relative"
+      style={{
+        backgroundImage: `url(${booking.venue?.media?.[0]?.url})`,
+      }}
+    >
+      {isPast && (
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-none" />
+      )}
     </div>
 
-    <button
-      onClick={handleLogout}
-      className="mt-20 text-[12px] hover:underline"
-    >
-      log out
-    </button>
+    {/* Info Row */}
+    <div className="flex justify-between text-sm">
+      <p>
+        {booking.venue?.name?.toLowerCase()},{" "}
+        {booking.venue?.location?.city?.toLowerCase()},{" "}
+        {booking.venue?.location?.country?.toLowerCase()}
+      </p>
+      <span className="text-right text-xs text-[#7A92A7]/70">
+        {formattedFrom} – {formattedTo}
+      </span>
+    </div>
 
-    {viewingBooking && (
-      <ViewBookingModal
-        booking={viewingBooking}
-        onClose={() => setViewingBooking(null)}
-      />
-    )}
+    {/* Action Buttons */}
+    <div className="flex flex-wrap gap-6 text-xs mt-2 justify-center sm:justify-start">
+      <button
+        onClick={() => setViewingBooking(booking)}
+        className="hover:underline"
+      >
+        view
+      </button>
 
-    {editingBooking && (
-      <EditBookingModal
-        booking={editingBooking}
-        onClose={() => setEditingBooking(null)}
-        onUpdated={fetchBookings}
-      />
-    )}
+      {isPast ? (
+        <>
+          <button
+            onClick={() => setReviewBooking(booking)}
+            className="hover:underline"
+          >
+            leave review
+          </button>
+          <button
+            onClick={() => navigate(`/venues/${booking.venue?.id}`)}
+            className="hover:underline"
+          >
+            book again
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={() => setEditingBooking(booking)}
+            className="hover:underline"
+          >
+            edit
+          </button>
+          <button
+            onClick={() => setCancelBooking(booking)}
+            className="hover:underline"
+          >
+            cancel
+          </button>
+        </>
+      )}
+    </div>
   </div>
 );
 
+          })
+        )}
+      </div>
+
+      <button
+        onClick={handleLogout}
+        className="mt-20 text-xs underline hover:text-gray-600"
+      >
+        log out
+      </button>
+
+      {/* Modals */}
+      {showEditModal && (
+        <EditProfileModal onClose={() => setShowEditModal(false)} />
+      )}
+      {viewingBooking && (
+        <ViewBookingModal
+          booking={viewingBooking}
+          onClose={() => setViewingBooking(null)}
+        />
+      )}
+      {editingBooking && (
+        <EditBookingModal
+          booking={editingBooking}
+          onClose={() => setEditingBooking(null)}
+          onUpdated={fetchBookings}
+        />
+      )}
+      {cancelBooking && (
+        <ConfirmCancelModal
+          type="booking"
+          target={cancelBooking}
+          onClose={() => setCancelBooking(null)}
+          onConfirm={fetchBookings}
+        />
+      )}
+      {reviewBooking && (
+        <ReviewBookingModal
+          booking={reviewBooking}
+          onClose={() => setReviewBooking(null)}
+          onReviewed={fetchBookings}
+        />
+      )}
+    </section>
+  );
 }
-export default CustomerProfile;

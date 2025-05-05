@@ -10,6 +10,7 @@ export default function About() {
           holidaze is a space to browse calmly, move freely, and choose
           intuitively.
         </p>
+
         <p>
           built for travelers who prefer clarity over clutter, and quiet over
           chaos.

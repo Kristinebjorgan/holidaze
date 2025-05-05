@@ -191,7 +191,10 @@ export default function VenueDetails() {
             required
           />
 
-          <button type="submit" className="text-xs hover:underline hover:opacity-80">
+          <button
+            type="submit"
+            className="text-xs hover:underline hover:opacity-80"
+          >
             book
           </button>
 
