@@ -79,8 +79,6 @@ export default function EditBookingModal({ booking, onClose, onUpdated }) {
           &times;
         </button>
 
-        <h2 className="text-lg mb-4 lowercase">edit booking</h2>
-
         {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-3">

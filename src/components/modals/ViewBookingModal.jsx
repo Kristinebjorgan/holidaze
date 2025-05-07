@@ -44,18 +44,18 @@ export default function ViewBookingModal({ booking, onClose }) {
         </button>
 
         <p>
-          <strong>Venue:</strong> {booking.venue?.name}
+          <strong>Venue</strong> {booking.venue?.name}
         </p>
         <p>
-          <strong>Date:</strong>{" "}
+          <strong>Date</strong>{" "}
           {new Date(booking.dateFrom).toLocaleDateString()} →{" "}
           {new Date(booking.dateTo).toLocaleDateString()}
         </p>
         <p>
-          <strong>Guests:</strong> {booking.guests}
+          <strong>Guests</strong> {booking.guests}
         </p>
-        <p className="text-xs text-gray-500 mt-4">
-          Booked on: {new Date(booking.created).toLocaleDateString()}
+        <p className="text-[#7A92A7] mt-4">
+          Booked {new Date(booking.created).toLocaleDateString()}
         </p>
       </div>
     </div>
