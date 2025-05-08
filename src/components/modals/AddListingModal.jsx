@@ -5,6 +5,8 @@ import {
   NOROFF_API_KEY,
   APP_VENUE_TAG,
 } from "../../config";
+import { useContinentFromCountry } from "../../hooks/useContinentFromCountry";
+
 
 const continents = [
   "Africa",
@@ -20,7 +22,7 @@ export default function AddListingModal({ onClose, onVenueCreated }) {
   const [venueName, setVenueName] = useState("");
   const [location, setLocation] = useState("");
   const [country, setCountry] = useState("");
-  const [continent, setContinent] = useState("");
+const continent = useContinentFromCountry(country);
   const [price, setPrice] = useState("");
   const [maxGuests, setMaxGuests] = useState("");
   const [description, setDescription] = useState("");
@@ -195,14 +197,10 @@ useEffect(() => {
 
           <select
             value={continent}
-            onChange={(e) => setContinent(e.target.value)}
-            className="w-full p-2 border-b bg-transparent outline-none"
-            required
+            disabled
+            className="w-full p-2 border-b bg-transparent outline-none text-gray-400 cursor-not-allowed"
           >
-            <option value="">choose continent</option>
-            {continents.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
+            <option value="">{continent || "autofill"}</option>
           </select>
 
           <input
