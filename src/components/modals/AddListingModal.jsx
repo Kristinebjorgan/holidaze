@@ -150,7 +150,6 @@ useEffect(() => {
     setVenueName("");
     setLocation("");
     setCountry("");
-    setContinent("");
     setPrice("");
     setMaxGuests("");
     setDescription("");

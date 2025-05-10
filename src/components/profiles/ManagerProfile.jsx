@@ -53,18 +53,17 @@ function ManagerProfile() {
     }
   };
 
-useEffect(() => {
-  const handleProfileUpdate = () => {
-    const updatedUser = JSON.parse(localStorage.getItem("user"));
-    setUser(updatedUser);
-  };
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const updatedUser = JSON.parse(localStorage.getItem("user"));
+      setUser(updatedUser);
+    };
 
-  window.addEventListener("profile-updated", handleProfileUpdate);
-  return () => {
-    window.removeEventListener("profile-updated", handleProfileUpdate);
-  };
-}, []);
-
+    window.addEventListener("profile-updated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("profile-updated", handleProfileUpdate);
+    };
+  }, []);
 
   const handleVenueCreated = () => {
     setTimeout(() => {
@@ -120,41 +119,41 @@ useEffect(() => {
     <section className="px-4 py-10 text-[#7A92A7] max-w-5xl mx-auto text-center">
       <div className="mb-6">
         <h1 className="text-sm mb-4 lowercase text-[#7A92A7]">
-          hello, {user.name}
+          hello, {user.name}!
         </h1>
         {user.avatar?.url ? (
           <img
             src={user.avatar.url}
             alt={user.avatar.alt || "avatar"}
-            className="w-16 h-16 mx-auto object-cover mb-1"
+            className="w-24 h-32 mx-auto object-cover mb-1"
           />
         ) : (
           <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 rounded-full mb-1" />
         )}
         {user.bio && (
-          <p className="text-xs text-[#7A92A7] mb-2 max-w-xs mx-auto">
+          <p className="text-xs text-[#7A92A7] mt-4 mb-2 max-w-xs mx-auto">
             {user.bio}
           </p>
         )}
         <button
-          className="text-xs text-[#7A92A7] hover:underline hover:opacity-80"
+          className="text-[10px] text-[#7A92A7]/70 hover:underline hover:opacity-60 lowercase"
           onClick={() => setShowEditProfile(true)}
         >
           edit
         </button>
       </div>
 
-      <div className="bg-white/70 backdrop-blur-md p-4 mb-6 text-sm grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-        <div>
-          <p className="text-xs text-slate-400">listings</p>
-          <p>{venues.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm mb-6">
+        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+          <p className="text-xs">listings</p>
+          <p className="text-base">{venues.length}</p>
         </div>
-        <div>
-          <p className="text-xs text-slate-400">bookings</p>
+        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+          <p className="text-xs">bookings</p>
           <p>{venues.reduce((sum, v) => sum + (v._count?.bookings || 0), 0)}</p>
         </div>
-        <div>
-          <p className="text-xs text-slate-400">occupancy</p>
+        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+          <p className="text-xs">occupancy</p>
           <p>
             {(() => {
               let totalBookedDays = 0;
@@ -191,8 +190,8 @@ useEffect(() => {
             })()}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-slate-400">avg. price</p>
+        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+          <p className="text-xs">avg. price</p>
           <p>
             €
             {venues.length
@@ -205,20 +204,22 @@ useEffect(() => {
         </div>
       </div>
 
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="search your listings"
-        className="w-full bg-transparent text-sm text-center mb-6 focus:outline-none"
-      />
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="text-sm text-[#7A92A7] hover:underline"
+        >
+          add
+        </button>
 
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="text-sm text-[#7A92A7] hover:underline mb-10"
-      >
-        add
-      </button>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="search"
+          className="text-sm bg-transparent text-right focus:outline-none placeholder:text-[#7A92A7]"
+        />
+      </div>
 
       {showCreateModal && (
         <AddListingModal
@@ -245,13 +246,18 @@ useEffect(() => {
 
       <div className="grid gap-12">
         {filteredVenues.length === 0 ? (
-          <p className="text-gray-400 text-sm">no listings match your search</p>
+          <p className="text-[#7A92A7]/70 text-sm">
+            no listings match your search
+          </p>
         ) : (
           filteredVenues.map((venue) => {
             const isPublished = localPublishStatus[venue.id];
 
             return (
-              <div key={venue.id} className="text-left text-sm text-[#7A92A7]">
+              <div
+                key={venue.id}
+                className="text-left text-sm text-[#7A92A7] bg-[#C6DAE7] p-4 mb-4"
+              >
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-sm text-s">{venue.name}</h3>
                 </div>
@@ -296,7 +302,7 @@ useEffect(() => {
       <div className="mt-20">
         <button
           onClick={handleLogout}
-          className="text-xs text-gray-400 hover:text-gray-600"
+          className="text-xs text-[#7A92A7] hover:text-gray-600"
         >
           log out
         </button>

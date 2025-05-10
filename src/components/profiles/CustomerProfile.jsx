@@ -95,76 +95,75 @@ export default function CustomerProfile() {
               "en-GB"
             );
 
-return (
-  <div key={booking.id} className="space-y-3 relative">
-    {/* Venue Image with optional sheer overlay */}
-    <div
-      className="h-64 bg-cover bg-center relative"
-      style={{
-        backgroundImage: `url(${booking.venue?.media?.[0]?.url})`,
-      }}
-    >
-      {isPast && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-none" />
-      )}
-    </div>
+            return (
+              <div
+                key={booking.id}
+                className="text-left text-sm text-[#7A92A7] bg-[#C6DAE7] p-4 mb-4"
+              >
+                <h3 className="text-base text-white mb-1">
+                  {booking.venue?.name?.toLowerCase()}
+                </h3>
+                <p className="text-xs mb-1">
+                  {booking.venue?.location?.city?.toLowerCase()},{" "}
+                  {booking.venue?.location?.country?.toLowerCase()}
+                </p>
+                <p className="text-xs mb-4 text-[#7A92A7]/70">
+                  {formattedFrom} – {formattedTo}
+                </p>
 
-    {/* Info Row */}
-    <div className="flex justify-between text-sm">
-      <p>
-        {booking.venue?.name?.toLowerCase()},{" "}
-        {booking.venue?.location?.city?.toLowerCase()},{" "}
-        {booking.venue?.location?.country?.toLowerCase()}
-      </p>
-      <span className="text-right text-xs text-[#7A92A7]/70">
-        {formattedFrom} – {formattedTo}
-      </span>
-    </div>
+                {booking.venue?.media?.[0]?.url && (
+                  <div className="relative">
+                    <img
+                      src={booking.venue.media[0].url}
+                      alt={booking.venue.media[0].alt || "venue"}
+                      className="w-full h-40 object-cover mb-4"
+                    />
+                    {isPast && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm pointer-events-none" />
+                    )}
+                  </div>
+                )}
 
-    {/* Action Buttons */}
-    <div className="flex flex-wrap gap-6 text-xs mt-2 justify-center sm:justify-start">
-      <button
-        onClick={() => setViewingBooking(booking)}
-        className="hover:underline"
-      >
-        view
-      </button>
-
-      {isPast ? (
-        <>
-          <button
-            onClick={() => setReviewBooking(booking)}
-            className="hover:underline"
-          >
-            leave review
-          </button>
-          <button
-            onClick={() => navigate(`/venues/${booking.venue?.id}`)}
-            className="hover:underline"
-          >
-            book again
-          </button>
-        </>
-      ) : (
-        <>
-          <button
-            onClick={() => setEditingBooking(booking)}
-            className="hover:underline"
-          >
-            edit
-          </button>
-          <button
-            onClick={() => setCancelBooking(booking)}
-            className="hover:underline"
-          >
-            cancel
-          </button>
-        </>
-      )}
-    </div>
-  </div>
-);
-
+                <div className="flex justify-center gap-4 text-xs">
+                  <button
+                    onClick={() => setViewingBooking(booking)}
+                    className="hover:underline"
+                  >
+                    view
+                  </button>
+                  {!isPast && (
+                    <button
+                      onClick={() => setEditingBooking(booking)}
+                      className="hover:underline"
+                    >
+                      edit
+                    </button>
+                  )}
+                  {!isPast && (
+                    <button
+                      onClick={() => setCancelBooking(booking)}
+                      className="hover:underline"
+                    >
+                      cancel
+                    </button>
+                  )}
+                  {isPast && (
+                    <button
+                      onClick={() => setReviewBooking(booking)}
+                      className="hover:underline"
+                    >
+                      leave review
+                    </button>
+                  )}
+                  <button
+                    onClick={() => navigate(`/venues/${booking.venue?.id}`)}
+                    className="hover:underline"
+                  >
+                    book again
+                  </button>
+                </div>
+              </div>
+            );
           })
         )}
       </div>

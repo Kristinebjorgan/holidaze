@@ -35,3 +35,18 @@ input.slider::-moz-range-thumb {
   border: none;
   cursor: pointer;
 }
+
+svg {
+  background-color: #FEFEFE;
+}
+
+.continent {
+  fill: #E9F5FB;
+  transition: fill 0.3s ease, filter 0.3s ease;
+}
+
+.continent:hover {
+  fill: #B6E5F9; 
+  filter: drop-shadow(0 0 6px #B6E5F9); /* glow effect */
+  cursor: pointer;
+}

@@ -1,70 +1,29 @@
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
-import ImageCarousel from "../components/ImageCarousel";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config"; // adjust path as needed
 
-export default function VenueDetails() {
-  const { id } = useParams();
-  const [venue, setVenue] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function BookingForm({ venue }) {
   const [booking, setBooking] = useState({
     dateFrom: "",
     dateTo: "",
     guests: 1,
   });
-  const [bookingSuccess, setBookingSuccess] = useState("");
-  const [bookingError, setBookingError] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(
-          `${NOROFF_API_BASE_URL}/holidaze/venues/${id}`,
-          {
-            headers: {
-              "X-Noroff-API-Key": NOROFF_API_KEY,
-            },
-          }
-        );
-        const data = await res.json();
-        if (!res.ok)
-          throw new Error(data.errors?.[0]?.message || "Failed to load venue");
-        setVenue(data.data);
-      } catch (err) {
-        console.error("Error fetching venue:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [id]);
+  const navigate = useNavigate();
 
-  const handleBookingSubmit = async (e) => {
+  async function handleBookingSubmit(e) {
     e.preventDefault();
-    setBookingError("");
-    setBookingSuccess("");
 
+    // Redirect if user is not logged in
     const token = localStorage.getItem("token");
     if (!token) {
-      setBookingError("Please log in to book.");
-      return;
+      return navigate("/auth");
     }
 
-    const formatToISO = (dateStr) => {
-      try {
-        return new Date(dateStr).toISOString();
-      } catch {
-        return "";
-      }
-    };
-
-    const payload = {
-      venueId: id,
-      dateFrom: formatToISO(booking.dateFrom),
-      dateTo: formatToISO(booking.dateTo),
-      guests: booking.guests,
-    };
+    // Optional: Validate date logic here
+    if (new Date(booking.dateFrom) > new Date(booking.dateTo)) {
+      return alert("End date must be after start date.");
+    }
 
     try {
       const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/bookings`, {
@@ -74,138 +33,68 @@ export default function VenueDetails() {
           Authorization: `Bearer ${token}`,
           "X-Noroff-API-Key": NOROFF_API_KEY,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          dateFrom: booking.dateFrom,
+          dateTo: booking.dateTo,
+          guests: booking.guests,
+          venueId: venue.id,
+        }),
       });
 
       const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.errors?.[0]?.message || "Booking failed.");
 
-      setBookingSuccess("Booking successful!");
-      setBooking({ dateFrom: "", dateTo: "", guests: 1 });
+      if (!res.ok) {
+        throw new Error(data.errors?.[0]?.message || "Booking failed");
+      }
+
+      alert("Booking successful!");
+      // Optional: navigate to bookings page, reload venue, etc.
     } catch (err) {
       console.error("Booking error:", err);
-      setBookingError(err.message);
+      alert(err.message || "An error occurred during booking.");
     }
-  };
-
-  if (loading) return <p className="text-center py-8">Loading venue...</p>;
-  if (error) return <p className="text-center text-red-500 py-8">{error}</p>;
-  if (!venue) return <p className="text-center py-8">Venue not found.</p>;
-
-  const firstThreeImages = venue.media?.slice(0, 3) || [];
-  const remainingImages = venue.media?.slice(3) || [];
+  }
 
   return (
-    <section className="max-w-4xl mx-auto px-4 py-10 text-[#7A92A7] lowercase tracking-wide text-center">
-      {/* Hero Image */}
-      {firstThreeImages[0] && (
-        <img
-          src={firstThreeImages[0].url}
-          alt={firstThreeImages[0].alt || "venue hero image"}
-          className="w-full h-[400px] object-cover mb-6"
-        />
-      )}
-
-      {/* Title + Location */}
-      <h1 className="text-xl font-light mb-1">{venue.name}</h1>
-      <p className="text-xs mb-6">
-        {venue.location?.address}, {venue.location?.country}
-      </p>
-
-      {/* Description */}
-      <p className="whitespace-pre-line text-sm leading-relaxed mb-8 max-w-prose mx-auto">
-        {venue.description}
-      </p>
-
-      {/* Second Image */}
-      {firstThreeImages[1] && (
-        <img
-          src={firstThreeImages[1].url}
-          alt={firstThreeImages[1].alt || "venue image"}
-          className="w-full h-[400px] object-cover mb-10"
-        />
-      )}
-
-      {/* Review Placeholder */}
-      <div className="mb-10 text-sm italic text-slate-400">
-        review section coming soon...
-      </div>
-
-      {/* Features Table */}
-      <div className="grid grid-cols-2 gap-y-4 text-sm mb-10 mx-auto w-max">
-        <span>wifi</span>
-        <span>{venue.meta?.wifi ? "yes" : "no"}</span>
-        <span>breakfast</span>
-        <span>{venue.meta?.breakfast ? "yes" : "no"}</span>
-        <span>parking</span>
-        <span>{venue.meta?.parking ? "yes" : "no"}</span>
-        <span>pets</span>
-        <span>{venue.meta?.pets ? "yes" : "no"}</span>
-      </div>
-
-      {/* Third Image or Carousel */}
-      {firstThreeImages[2] && (
-        <img
-          src={firstThreeImages[2].url}
-          alt={firstThreeImages[2].alt || "venue image"}
-          className="w-full h-[400px] object-cover mb-10"
-        />
-      )}
-      {remainingImages.length > 0 && <ImageCarousel images={remainingImages} />}
-
-      {/* Booking Glassmorphic Box */}
-      <div className="bg-white/80 backdrop-blur-md border border-[#7A92A7]/20 p-6 mt-10 max-w-md mx-auto text-sm">
-        <h3 className="text-md mb-4">book this venue</h3>
-        <form onSubmit={handleBookingSubmit} className="space-y-4">
-          <div className="flex gap-3">
-            <input
-              type="date"
-              value={booking.dateFrom}
-              onChange={(e) =>
-                setBooking({ ...booking, dateFrom: e.target.value })
-              }
-              className="flex-1 p-2 border border-[#7A92A7]/30 bg-transparent text-sm text-center"
-              required
-            />
-            <input
-              type="date"
-              value={booking.dateTo}
-              onChange={(e) =>
-                setBooking({ ...booking, dateTo: e.target.value })
-              }
-              className="flex-1 p-2 border border-[#7A92A7]/30 bg-transparent text-sm text-center"
-              required
-            />
-          </div>
-
+    <div className="bg-white/80 backdrop-blur-md border border-[#7A92A7]/20 p-6 mt-10 max-w-md mx-auto text-sm">
+      <h3 className="text-md mb-4">book this venue</h3>
+      <form onSubmit={handleBookingSubmit} className="space-y-4">
+        <div className="flex gap-3">
           <input
-            type="number"
-            min={1}
-            max={venue.maxGuests}
-            value={booking.guests}
+            type="date"
+            value={booking.dateFrom}
             onChange={(e) =>
-              setBooking({ ...booking, guests: +e.target.value })
+              setBooking({ ...booking, dateFrom: e.target.value })
             }
-            className="w-full p-2 border border-[#7A92A7]/30 bg-transparent text-sm text-center"
+            className="flex-1 p-2 border border-[#7A92A7]/30 bg-transparent text-sm text-center"
             required
           />
+          <input
+            type="date"
+            value={booking.dateTo}
+            onChange={(e) => setBooking({ ...booking, dateTo: e.target.value })}
+            className="flex-1 p-2 border border-[#7A92A7]/30 bg-transparent text-sm text-center"
+            required
+          />
+        </div>
 
-          <button
-            type="submit"
-            className="text-xs hover:underline hover:opacity-80"
-          >
-            book
-          </button>
+        <input
+          type="number"
+          min={1}
+          max={venue.maxGuests}
+          value={booking.guests}
+          onChange={(e) => setBooking({ ...booking, guests: +e.target.value })}
+          className="w-full p-2 border border-[#7A92A7]/30 bg-transparent text-sm text-center"
+          required
+        />
 
-          {bookingSuccess && (
-            <p className="text-green-600 text-xs mt-2">{bookingSuccess}</p>
-          )}
-          {bookingError && (
-            <p className="text-red-600 text-xs mt-2">{bookingError}</p>
-          )}
-        </form>
-      </div>
-    </section>
+        <button
+          type="submit"
+          className="text-xs hover:underline hover:opacity-80"
+        >
+          book
+        </button>
+      </form>
+    </div>
   );
 }
