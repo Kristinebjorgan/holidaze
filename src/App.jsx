@@ -20,17 +20,15 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        {/* landingpage */}
-        <Route path="/" element={<GlobeLanding />} />
-
+        {/* homepage now shows all venues */}
+        <Route path="/" element={<AllVenues />} />
         {/* pages */}
         <Route path="/venues" element={<AllVenues />} />
         <Route path="/venues/:id" element={<VenueDetails />} />
         <Route path="/about" element={<About />} />
-
+        <Route path="/globe" element={<GlobeLanding />} /> {/* 🆕 */}
         {/* auth */}
         <Route path="/auth" element={<LoginRegister />} />
-
         {/* protected routes */}
         <Route
           path="/account/customer"

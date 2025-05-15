@@ -3,8 +3,9 @@ import Masonry from "react-masonry-css";
 import VenueCard from "../components/venues/VenueCard";
 import FilterModal from "../components/modals/FilterModal";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import VenueSkeleton from "../components/VenueSkeleton";
+import { GlobeAltIcon } from "@heroicons/react/24/outline"; // outlined version
 
 
 const breakpointColumnsObj = {
@@ -221,10 +222,7 @@ return (
 
     {/* tiny scroll loader */}
     {hasMore && (
-      <div
-        ref={loadMoreRef}
-        className="h-10 flex justify-center items-center"
-      >
+      <div ref={loadMoreRef} className="h-10 flex justify-center items-center">
         {loading && (
           <span className="text-xs text-[#7A92A7]/60 lowercase animate-pulse">
             loading more venues...
@@ -232,6 +230,14 @@ return (
         )}
       </div>
     )}
+
+    {/* globe icon link to homepage */}
+    <div className="flex justify-center mt-12">
+      <Link to="/globe" title="View globe">
+        <GlobeAltIcon className="w-6 h-6 text-[#7A92A7] hover:opacity-80 transition" />
+      </Link>
+    </div>
+    
 
     {/* scroll-to-top button */}
     {showScrollToTop && (

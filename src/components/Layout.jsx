@@ -4,8 +4,7 @@ import Footer from "./Footer";
 
 export default function Layout() {
   const location = useLocation();
-  const isLanding = location.pathname === "/";
-
+  const isLanding = location.pathname === "/globe"; 
   return (
     <div className="flex flex-col min-h-screen">
       {!isLanding && <Header />}
