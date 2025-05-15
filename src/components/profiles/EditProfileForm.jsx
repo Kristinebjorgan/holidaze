@@ -2,17 +2,15 @@ import { useEffect, useState } from "react";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config";
 import { uploadImageToCloudinary } from "../../utils/uploadImageToCloudinary";
 
-
-export default function EditProfileForm() {
+export default function EditProfileForm({ onSuccess }) {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [message, setMessage] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
   const profileName = user?.name;
   const token = localStorage.getItem("token");
-  const [avatarFile, setAvatarFile] = useState(null);
-
 
   useEffect(() => {
     if (!profileName) return;
@@ -38,50 +36,54 @@ export default function EditProfileForm() {
 
     fetchProfile();
   }, [profileName]);
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setMessage("");
 
-  try {
-    let uploadedAvatarUrl = avatarUrl;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
 
-    if (avatarFile) {
-      uploadedAvatarUrl = await uploadImageToCloudinary(avatarFile);
-    }
+    try {
+      let uploadedAvatarUrl = avatarUrl;
 
-    const payload = {
-      bio,
-      avatar: uploadedAvatarUrl
-        ? { url: uploadedAvatarUrl, alt: `${profileName}'s avatar` }
-        : undefined,
-    };
-
-    const res = await fetch(
-      `${NOROFF_API_BASE_URL}/holidaze/profiles/${profileName}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Noroff-API-Key": NOROFF_API_KEY,
-        },
-        body: JSON.stringify(payload),
+      if (avatarFile) {
+        uploadedAvatarUrl = await uploadImageToCloudinary(avatarFile);
       }
-    );
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.errors?.[0]?.message || "Update failed.");
+      const payload = {
+        bio,
+        avatar: uploadedAvatarUrl
+          ? { url: uploadedAvatarUrl, alt: `${profileName}'s avatar` }
+          : undefined,
+      };
 
-    setMessage("profile updated successfully!");
-    const updatedUser = { ...user, ...data.data };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event("profile-updated"));
-  } catch (err) {
-    console.error("Update failed:", err);
-    setMessage(err.message);
-  }
-};
+      const res = await fetch(
+        `${NOROFF_API_BASE_URL}/holidaze/profiles/${profileName}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-Noroff-API-Key": NOROFF_API_KEY,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.errors?.[0]?.message || "Update failed.");
+
+      const updatedUser = { ...user, ...data.data };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event("profile-updated"));
+
+      setMessage("profile updated successfully!");
+
+      onSuccess?.(); // ✅ notify parent to close modal and refresh
+    } catch (err) {
+      console.error("Update failed:", err);
+      setMessage(err.message);
+    }
+  };
 
   return (
     <form

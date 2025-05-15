@@ -170,14 +170,20 @@ export default function CustomerProfile() {
 
       <button
         onClick={handleLogout}
-        className="mt-20 text-xs underline hover:text-gray-600"
+        className="mt-20 text-xs hover:underline hover:text-gray-600"
       >
         log out
       </button>
 
       {/* Modals */}
       {showEditModal && (
-        <EditProfileModal onClose={() => setShowEditModal(false)} />
+        <EditProfileModal
+          onClose={() => setShowEditModal(false)}
+          onProfileUpdated={() => {
+            const updated = localStorage.getItem("user");
+            if (updated) setUser(JSON.parse(updated));
+          }}
+        />
       )}
       {viewingBooking && (
         <ViewBookingModal

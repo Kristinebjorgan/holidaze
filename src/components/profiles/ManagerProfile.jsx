@@ -241,9 +241,14 @@ function ManagerProfile() {
         />
       )}
       {showEditProfile && (
-        <EditProfileModal onClose={() => setShowEditProfile(false)} />
+        <EditProfileModal
+          onClose={() => setShowEditProfile(false)}
+          onProfileUpdated={() => {
+            const updated = localStorage.getItem("user");
+            if (updated) setUser(JSON.parse(updated));
+          }}
+        />
       )}
-
       <div className="grid gap-12">
         {filteredVenues.length === 0 ? (
           <p className="text-[#7A92A7]/70 text-sm">

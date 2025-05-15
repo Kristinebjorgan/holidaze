@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import EditProfileForm from "../profiles/EditProfileForm";
 
-export default function EditProfileModal({ onClose }) {
+export default function EditProfileModal({ onClose, onProfileUpdated }) {
   const modalRef = useRef();
 
   useEffect(() => {
@@ -43,7 +43,12 @@ export default function EditProfileModal({ onClose }) {
           &times;
         </button>
 
-        <EditProfileForm />
+        <EditProfileForm
+          onSuccess={() => {
+            onProfileUpdated?.();
+            onClose();
+          }}
+        />
       </div>
     </div>
   );
