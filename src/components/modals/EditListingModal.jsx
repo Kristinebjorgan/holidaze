@@ -70,30 +70,43 @@ export default function EditVenueModal({ venue, onClose, onUpdate }) {
     setFormData((prev) => ({ ...prev, media: updated }));
   };
 
-  const handleUpdate = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${NOROFF_API_BASE_URL}/holidaze/venues/${venue.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "X-Noroff-API-Key": NOROFF_API_KEY,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+const handleUpdate = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-      if (!res.ok) throw new Error("Failed to update venue");
-      const updatedVenue = await res.json();
-      onUpdate(updatedVenue.data);
-      onClose();
-    } catch (err) {
-      console.error("Update error:", err);
+    // make sure "kribji" is still in the description
+    let updatedDescription = formData.description || "";
+    if (!updatedDescription.toLowerCase().includes("kribji")) {
+      updatedDescription = `${updatedDescription} kribji`;
     }
-  };
+
+    const updatedData = {
+      ...formData,
+      description: updatedDescription,
+    };
+
+    const res = await fetch(
+      `${NOROFF_API_BASE_URL}/holidaze/venues/${venue.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-Noroff-API-Key": NOROFF_API_KEY,
+        },
+        body: JSON.stringify(updatedData),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to update venue");
+    const updatedVenue = await res.json();
+    onUpdate(updatedVenue.data);
+    onClose();
+  } catch (err) {
+    console.error("Update error:", err);
+  }
+};
+
 
   return (
     <div

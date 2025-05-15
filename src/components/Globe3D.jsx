@@ -20,7 +20,7 @@ export default function Globe3D({ onCountryClick }) {
       });
   }, []);
 
-  // Setup globe
+  // Setup globeconst geoData = feature(data, data.objects.countries);
   useEffect(() => {
     const globe = globeRef.current;
     if (!globe) return;
