@@ -85,66 +85,72 @@ useEffect(() => {
     return results.filter((r) => r.status === "fulfilled").map((r) => r.value);
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
+async function handleSubmit(e) {
+  e.preventDefault();
+  setError("");
 
-    if (
-      !venueName ||
-      !location ||
-      !country ||
-      !continent ||
-      !price ||
-      !maxGuests ||
-      !description ||
-      mediaFiles.length === 0
-    ) {
-      setError("All fields are required.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Not authenticated.");
-
-      const uploadedMedia = await uploadAllImages(mediaFiles);
-      if (!uploadedMedia.length) throw new Error("No images uploaded.");
-
-      const payload = {
-        name: venueName,
-        description: `${description} ${APP_VENUE_TAG}`,
-        media: uploadedMedia,
-        price: parseFloat(price),
-        maxGuests: parseInt(maxGuests),
-        meta: { ...amenities },
-        location: { address: location, country, continent },
-      };
-
-      const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Noroff-API-Key": NOROFF_API_KEY,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await res.json();
-      if (!res.ok)
-        throw new Error(result.errors?.[0]?.message || "Venue creation failed");
-
-      resetForm();
-      onVenueCreated?.();
-      onClose();
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Validate image count first
+  if (mediaFiles.length < 3) {
+    setError("Please upload at least three images.");
+    return;
   }
+
+  // Then validate form fields
+  if (
+    !venueName ||
+    !location ||
+    !country ||
+    !continent ||
+    !price ||
+    !maxGuests ||
+    !description
+  ) {
+    setError("Please fill in all required fields.");
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Not authenticated.");
+
+    const uploadedMedia = await uploadAllImages(mediaFiles);
+    if (!uploadedMedia.length) throw new Error("No images uploaded.");
+
+    const payload = {
+      name: venueName,
+      description: `${description} ${APP_VENUE_TAG}`,
+      media: uploadedMedia,
+      price: parseFloat(price),
+      maxGuests: parseInt(maxGuests),
+      meta: { ...amenities },
+      location: { address: location, country, continent },
+    };
+
+    const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Noroff-API-Key": NOROFF_API_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.errors?.[0]?.message || "Venue creation failed");
+
+    resetForm();
+    onVenueCreated?.();
+    onClose();
+  } catch (err) {
+    console.error(err);
+    setError(err.message);
+  } finally {
+    setIsSubmitting(false);
+  }
+}
 
   function resetForm() {
     setVenueName("");
@@ -175,7 +181,11 @@ useEffect(() => {
         >
           ×
         </button>
-        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        {error && (
+          <div className="mb-4 p-3 text-xs bg-white/60 backdrop-blur-sm border border-[#7A92A7]/20 text-[#7A92A7] text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-sm">
           {[
@@ -242,12 +252,15 @@ useEffect(() => {
                 ])
               }
               className="hidden"
-              required
             />
 
             <label
               htmlFor="mediaUpload"
-              className="text-sm text-[#7A92A7] px-4 py-1 cursor-pointer hover:underline"
+              className={`text-sm px-4 py-1 cursor-pointer hover:underline ${
+                error.toLowerCase().includes("image")
+                  ? "text-red-500"
+                  : "text-[#7A92A7]"
+              }`}
             >
               files
             </label>

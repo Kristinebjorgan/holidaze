@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../../config";
 
 export default function ViewVenueModal({ venue, onClose }) {
   const [bookings, setBookings] = useState([]);
   const modalRef = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -29,28 +31,32 @@ export default function ViewVenueModal({ venue, onClose }) {
     fetchBookings();
   }, [venue.id]);
 
-useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (modalRef.current && !modalRef.current.contains(e.target)) {
-      onClose();
-    }
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  const handleViewAdClick = () => {
+    navigate(`/venues/${venue.id}`);
+    onClose();
   };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Escape") {
-      onClose();
-    }
-  };
-
-  document.addEventListener("mousedown", handleClickOutside);
-  document.addEventListener("keydown", handleKeyDown);
-
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-    document.removeEventListener("keydown", handleKeyDown);
-  };
-}, [onClose]);
-
 
   return (
     <div
@@ -98,7 +104,6 @@ useEffect(() => {
           )}
         </div>
 
-        <h3 className="text-sm mb-1">Bookings</h3>
         {bookings.length === 0 ? (
           <p className="text-sm">No bookings yet.</p>
         ) : (
@@ -119,6 +124,16 @@ useEffect(() => {
             ))}
           </ul>
         )}
+
+        {/* New View Ad Button */}
+        <div className="text-center mt-6">
+          <button
+            onClick={handleViewAdClick}
+            className="text-sm text-[#7A92A7] hover:underline hover:opacity-80"
+          >
+            view ad
+          </button>
+        </div>
       </div>
     </div>
   );
