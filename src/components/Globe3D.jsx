@@ -27,6 +27,7 @@ export default function Globe3D({ onCountryClick }) {
 
     globe.controls().autoRotate = true;
     globe.controls().autoRotateSpeed = 0.3;
+    globe.camera().position.z = 300;
 
     const scene = globe.scene();
     scene.children = scene.children.filter((obj) => !obj.isLight);
@@ -68,15 +69,15 @@ export default function Globe3D({ onCountryClick }) {
         globeMaterial={new THREE.MeshBasicMaterial({ color: "#FEFEFE" })}
         showAtmosphere={false}
         polygonsData={countries}
-        polygonCapColor={(d) => (hovered === d ? "#A5C3D3" : "#D0E9F5")} 
-        polygonStrokeColor={() => "#FEFEFE"} 
-        polygonSideColor={() => "rgba(0,0,0,0)"} 
-        polygonAltitude={() => 0.01} 
-        polygonLabel={() => ""} 
+        polygonCapColor={(d) => (hovered === d ? "#A5C3D3" : "#D0E9F5")}
+        polygonStrokeColor={() => "#FEFEFE"}
+        polygonSideColor={() => "rgba(0,0,0,0)"}
+        polygonAltitude={() => 0.01}
+        polygonLabel={() => ""}
         onPolygonHover={handleHover}
         onPolygonClick={(d) => onCountryClick(d?.properties?.name)}
-        width={500}
-        height={500}
+        width={600}
+        height={600}
       />
 
       {tooltip.show && (
