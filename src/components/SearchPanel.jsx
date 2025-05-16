@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CONTINENT_COUNTRY_MAP } from "../lib/continentCountryMap";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
 export default function SearchPanel({ onClose }) {
   const [selectedContinent, setSelectedContinent] = useState("");
@@ -35,17 +36,21 @@ export default function SearchPanel({ onClose }) {
       </div>
 
       {/* Search Input */}
-      <div className="text-left mb-10 flex gap-2">
+      <div className="mb-10 relative max-w-md mx-auto">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="search"
-          className="flex-1 bg-transparent border-none border-b border-[#7A92A7]/30 text-sm focus:outline-none text-center"
+          className="w-full bg-transparent border-none border-b border-[#7A92A7] text-sm focus:outline-none text-center pr-8"
         />
-        <button onClick={handleSearch} className="text-sm hover:underline">
-          search
+        <button
+          onClick={handleSearch}
+          className="absolute right-0 top-1/2 -translate-y-1/2 text-[#7A92A7] hover:opacity-80"
+          aria-label="search"
+        >
+          <ArrowRightIcon className="h-4 w-4" />
         </button>
       </div>
 
@@ -57,7 +62,7 @@ export default function SearchPanel({ onClose }) {
             <button
               key={continentKey}
               onClick={() => handleContinentClick(continentKey)}
-              className={`bg-[#dfeaf1] py-6 hover:opacity-90 ${
+              className={`bg-[#D4E9F7] py-6 hover:opacity-90 ${
                 selectedContinent === continentKey
                   ? "outline outline-1 outline-[#7A92A7]"
                   : ""
@@ -80,6 +85,7 @@ export default function SearchPanel({ onClose }) {
                 navigate(`/venues?country=${encodeURIComponent(country)}`);
                 onClose();
               }}
+              className="bg-[#D4E9F7] py-3 hover:opacity-90"
             >
               {country}
             </button>

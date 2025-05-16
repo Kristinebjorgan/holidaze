@@ -69,7 +69,7 @@ export default function Globe3D({ onCountryClick }) {
         globeMaterial={new THREE.MeshBasicMaterial({ color: "#FEFEFE" })}
         showAtmosphere={false}
         polygonsData={countries}
-        polygonCapColor={(d) => (hovered === d ? "#A5C3D3" : "#D0E9F5")}
+        polygonCapColor={(d) => (hovered === d ? "#7EAEC7" : "#D4E9F7")}
         polygonStrokeColor={() => "#FEFEFE"}
         polygonSideColor={() => "rgba(0,0,0,0)"}
         polygonAltitude={() => 0.01}

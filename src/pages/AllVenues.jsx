@@ -34,6 +34,8 @@ export default function AllVenues() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const selectedCountry = queryParams.get("country");
+  const searchQuery = queryParams.get("search");
+
 
   const [allFetchedVenues, setAllFetchedVenues] = useState([]);
   const [page, setPage] = useState(1);
@@ -41,82 +43,101 @@ export default function AllVenues() {
   const loadMoreRef = useRef(null);
   const [showScrollToTop, setShowScrollToTop] = useState(false); // 🆕
 
-  useEffect(() => {
-    let isCancelled = false;
+ useEffect(() => {
+   let isCancelled = false;
 
-    async function fetchAllKribjiVenues() {
-      let all = [];
-      let currentPage = 1;
-      let keepGoing = true;
+   async function fetchAllKribjiVenues() {
+     let all = [];
+     let currentPage = 1;
+     let keepGoing = true;
 
-      try {
-        while (keepGoing) {
-          const res = await fetch(
-            `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}&sort=created&_bookings=true`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-Noroff-API-Key": NOROFF_API_KEY,
-              },
-            }
-          );
+     const searchQuery = queryParams.get("search");
+     const lowerSearch = searchQuery?.toLowerCase() || "";
 
-          const data = await res.json();
-          if (!res.ok)
-            throw new Error(data.errors?.[0]?.message || "Fetch failed");
+     try {
+       while (keepGoing) {
+         const res = await fetch(
+           `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}&sort=created&_bookings=true`,
+           {
+             headers: {
+               "Content-Type": "application/json",
+               "X-Noroff-API-Key": NOROFF_API_KEY,
+             },
+           }
+         );
 
-          const kribjiTagged = data.data.filter((venue) =>
-            venue.description?.toLowerCase().includes("kribji")
-          );
+         const data = await res.json();
+         if (!res.ok)
+           throw new Error(data.errors?.[0]?.message || "Fetch failed");
 
-          all = [...all, ...kribjiTagged];
+         const kribjiTagged = data.data.filter((venue) =>
+           venue.description?.toLowerCase().includes("kribji")
+         );
 
-          if (data.meta?.isLastPage || kribjiTagged.length === 0) {
-            keepGoing = false;
-          } else {
-            currentPage++;
-          }
-        }
+         all = [...all, ...kribjiTagged];
 
-        if (!isCancelled) {
-          const countryFiltered = selectedCountry
-            ? all.filter(
-                (venue) =>
-                  venue.location?.country?.toLowerCase() ===
-                  selectedCountry.toLowerCase()
-              )
-            : all;
+         if (data.meta?.isLastPage || kribjiTagged.length === 0) {
+           keepGoing = false;
+         } else {
+           currentPage++;
+         }
+       }
 
-          setAllFetchedVenues(countryFiltered);
+       if (!isCancelled) {
+         const countryFiltered = selectedCountry
+           ? all.filter(
+               (venue) =>
+                 venue.location?.country?.toLowerCase() ===
+                 selectedCountry.toLowerCase()
+             )
+           : all;
 
-          const filtered = countryFiltered.filter((venue) => {
-            return (
-              venue.price <= activeFilters.price &&
-              venue.maxGuests >= activeFilters.guests &&
-              (!activeFilters.wifi || venue.meta?.wifi) &&
-              (!activeFilters.breakfast || venue.meta?.breakfast) &&
-              (!activeFilters.parking || venue.meta?.parking) &&
-              (!activeFilters.pets || venue.meta?.pets)
-            );
-          });
+         const searchFiltered = lowerSearch
+           ? countryFiltered.filter((venue) => {
+               const content = [
+                 venue.name,
+                 venue.description,
+                 venue.location?.address,
+                 venue.location?.city,
+                 venue.location?.country,
+               ]
+                 .join(" ")
+                 .toLowerCase();
+               return content.includes(lowerSearch);
+             })
+           : countryFiltered;
 
-          setFilteredVenues(filtered);
-        }
-      } catch (err) {
-        console.error("Error fetching venues:", err);
-        setError(err.message);
-      } finally {
-        if (!isCancelled) setLoading(false);
-      }
-    }
+         setAllFetchedVenues(searchFiltered);
 
-    setLoading(true);
-    fetchAllKribjiVenues();
+         const filtered = searchFiltered.filter((venue) => {
+           return (
+             venue.price <= activeFilters.price &&
+             venue.maxGuests >= activeFilters.guests &&
+             (!activeFilters.wifi || venue.meta?.wifi) &&
+             (!activeFilters.breakfast || venue.meta?.breakfast) &&
+             (!activeFilters.parking || venue.meta?.parking) &&
+             (!activeFilters.pets || venue.meta?.pets)
+           );
+         });
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [location.search]); // re-run when URL query changes
+         setFilteredVenues(filtered);
+       }
+     } catch (err) {
+       console.error("Error fetching venues:", err);
+       setError(err.message);
+     } finally {
+       if (!isCancelled) setLoading(false);
+     }
+   }
+
+   setLoading(true);
+   fetchAllKribjiVenues();
+
+   return () => {
+     isCancelled = true;
+   };
+ }, [location.search]);
+
 
   useEffect(() => {
     let timeout;
