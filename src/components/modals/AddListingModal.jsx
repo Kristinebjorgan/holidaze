@@ -127,15 +127,20 @@ async function handleSubmit(e) {
       location: { address: location, country, continent },
     };
 
-    const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues`, {
-      method: "POST",
+  const res = await fetch(
+    `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=1`,
+    {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
         "X-Noroff-API-Key": NOROFF_API_KEY,
       },
-      body: JSON.stringify(payload),
-    });
+    }
+  );
+  const data = await res.json();
+  const kribjiVenues = data.data.filter((venue) =>
+    venue.description?.toLowerCase().includes("kribji")
+  );
+  console.log("Kribji Venues:", kribjiVenues);
 
     const result = await res.json();
     if (!res.ok)

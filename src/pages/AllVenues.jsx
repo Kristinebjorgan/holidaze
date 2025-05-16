@@ -42,72 +42,81 @@ export default function AllVenues() {
   const [showScrollToTop, setShowScrollToTop] = useState(false); // 🆕
 
   useEffect(() => {
-    (async () => {
+    let isCancelled = false;
+
+    async function fetchAllKribjiVenues() {
+      let all = [];
+      let currentPage = 1;
+      let keepGoing = true;
+
       try {
-        const res = await fetch(
-          `${NOROFF_API_BASE_URL}/holidaze/venues?limit=20&page=${page}&sort=created&_bookings=true`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-Noroff-API-Key": NOROFF_API_KEY,
-            },
+        while (keepGoing) {
+          const res = await fetch(
+            `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}&sort=created&_bookings=true`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-Noroff-API-Key": NOROFF_API_KEY,
+              },
+            }
+          );
+
+          const data = await res.json();
+          if (!res.ok)
+            throw new Error(data.errors?.[0]?.message || "Fetch failed");
+
+          const kribjiTagged = data.data.filter((venue) =>
+            venue.description?.toLowerCase().includes("kribji")
+          );
+
+          all = [...all, ...kribjiTagged];
+
+          if (data.meta?.isLastPage || kribjiTagged.length === 0) {
+            keepGoing = false;
+          } else {
+            currentPage++;
           }
-        );
-
-        const data = await res.json();
-
-        console.log("Fetched venues:", data.data);
-        console.log("Pagination meta:", data.meta);
-
-        if (!res.ok) {
-          throw new Error(
-            data.errors?.[0]?.message || "Failed to load venues."
-          );
         }
 
-        if (data.meta?.isLastPage) {
-          setHasMore(false);
+        if (!isCancelled) {
+          const countryFiltered = selectedCountry
+            ? all.filter(
+                (venue) =>
+                  venue.location?.country?.toLowerCase() ===
+                  selectedCountry.toLowerCase()
+              )
+            : all;
+
+          setAllFetchedVenues(countryFiltered);
+
+          const filtered = countryFiltered.filter((venue) => {
+            return (
+              venue.price <= activeFilters.price &&
+              venue.maxGuests >= activeFilters.guests &&
+              (!activeFilters.wifi || venue.meta?.wifi) &&
+              (!activeFilters.breakfast || venue.meta?.breakfast) &&
+              (!activeFilters.parking || venue.meta?.parking) &&
+              (!activeFilters.pets || venue.meta?.pets)
+            );
+          });
+
+          setFilteredVenues(filtered);
         }
-
-        const kribjiTagged = data.data.filter((venue) =>
-          venue.description?.toLowerCase().includes("kribji")
-        );
-
-        const filteredByCountry = selectedCountry
-          ? kribjiTagged.filter(
-              (venue) =>
-                venue.location?.country?.toLowerCase() ===
-                selectedCountry.toLowerCase()
-            )
-          : kribjiTagged;
-
-        const merged = [...allFetchedVenues, ...filteredByCountry];
-        const uniqueById = Array.from(
-          new Map(merged.map((v) => [v.id, v])).values()
-        );
-
-        setAllFetchedVenues(uniqueById);
-
-        const filtered = uniqueById.filter((venue) => {
-          return (
-            venue.price <= activeFilters.price &&
-            venue.maxGuests >= activeFilters.guests &&
-            (!activeFilters.wifi || venue.meta?.wifi) &&
-            (!activeFilters.breakfast || venue.meta?.breakfast) &&
-            (!activeFilters.parking || venue.meta?.parking) &&
-            (!activeFilters.pets || venue.meta?.pets)
-          );
-        });
-
-        setFilteredVenues(filtered);
       } catch (err) {
         console.error("Error fetching venues:", err);
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
-    })();
-  }, [location.search, page]);
+    }
+
+    setLoading(true);
+    fetchAllKribjiVenues();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [location.search]); // re-run when URL query changes
 
   useEffect(() => {
     let timeout;
@@ -167,87 +176,88 @@ export default function AllVenues() {
     setFilteredVenues(result);
   }
 
-if (loading && page === 1) {
+  if (loading && page === 1) {
+    return (
+      <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
+        <Masonry
+          breakpointCols={breakpointColumnsObj}
+          className="flex -ml-4 w-auto"
+          columnClassName="pl-4"
+        >
+          {Array.from({ length: 9 }).map((_, idx) => (
+            <VenueSkeleton key={idx} />
+          ))}
+        </Masonry>
+      </section>
+    );
+  }
+
+  if (error) return <p className="text-center text-red-500 py-8">{error}</p>;
+
+  if (!filteredVenues.length)
+    return <p className="text-center py-8">No venues found.</p>;
+
   return (
     <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
+      <div className="flex justify-start mb-6">
+        <button
+          onClick={() => setShowFilterModal(true)}
+          className="text-sm hover:underline text-[#7A92A7] lowercase"
+        >
+          filter
+        </button>
+      </div>
+
+      {showFilterModal && (
+        <FilterModal
+          filters={activeFilters}
+          onClose={() => setShowFilterModal(false)}
+          onApply={applyFilters}
+        />
+      )}
+
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="flex -ml-4 w-auto"
         columnClassName="pl-4"
       >
-        {Array.from({ length: 9 }).map((_, idx) => (
-          <VenueSkeleton key={idx} />
+        {filteredVenues.map((venue) => (
+          <div key={venue.id} className="mb-4 opacity-0 animate-fadeInSlow">
+            <VenueCard venue={venue} />
+          </div>
         ))}
       </Masonry>
+
+      {/* tiny scroll loader */}
+      {hasMore && (
+        <div
+          ref={loadMoreRef}
+          className="h-10 flex justify-center items-center"
+        >
+          {loading && (
+            <span className="text-xs text-[#7A92A7]/60 lowercase animate-pulse">
+              loading more venues...
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* globe icon link to homepage */}
+      <div className="flex justify-center mt-12">
+        <Link to="/globe" title="View globe">
+          <GlobeAltIcon className="w-6 h-6 text-[#7A92A7] hover:opacity-80 transition" />
+        </Link>
+      </div>
+
+      {/* scroll-to-top button */}
+      {showScrollToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 bg-white/70 backdrop-blur-md text-[#7A92A7] px-3 py-1 text-xs lowercase shadow-md hover:opacity-90 transition z-50"
+        >
+          to top
+        </button>
+      )}
     </section>
   );
-}
-
-if (error)
-  return <p className="text-center text-red-500 py-8">{error}</p>;
-
-if (!filteredVenues.length)
-  return <p className="text-center py-8">No venues found.</p>;
-
-return (
-  <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
-    <div className="flex justify-start mb-6">
-      <button
-        onClick={() => setShowFilterModal(true)}
-        className="text-sm hover:underline text-[#7A92A7] lowercase"
-      >
-        filter
-      </button>
-    </div>
-
-    {showFilterModal && (
-      <FilterModal
-        filters={activeFilters}
-        onClose={() => setShowFilterModal(false)}
-        onApply={applyFilters}
-      />
-    )}
-
-    <Masonry
-      breakpointCols={breakpointColumnsObj}
-      className="flex -ml-4 w-auto"
-      columnClassName="pl-4"
-    >
-      {filteredVenues.map((venue) => (
-        <div key={venue.id} className="mb-4 opacity-0 animate-fadeInSlow">
-          <VenueCard venue={venue} />
-        </div>
-      ))}
-    </Masonry>
-
-    {/* tiny scroll loader */}
-    {hasMore && (
-      <div ref={loadMoreRef} className="h-10 flex justify-center items-center">
-        {loading && (
-          <span className="text-xs text-[#7A92A7]/60 lowercase animate-pulse">
-            loading more venues...
-          </span>
-        )}
-      </div>
-    )}
-
-    {/* globe icon link to homepage */}
-    <div className="flex justify-center mt-12">
-      <Link to="/globe" title="View globe">
-        <GlobeAltIcon className="w-6 h-6 text-[#7A92A7] hover:opacity-80 transition" />
-      </Link>
-    </div>
-    
-
-    {/* scroll-to-top button */}
-    {showScrollToTop && (
-      <button
-        onClick={scrollToTop}
-        className="fixed bottom-6 right-6 bg-white/70 backdrop-blur-md text-[#7A92A7] px-3 py-1 text-xs lowercase shadow-md hover:opacity-90 transition z-50"
-      >
-        to top
-      </button>
-    )}
-  </section>
-);
 }
