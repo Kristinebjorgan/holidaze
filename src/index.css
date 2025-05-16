@@ -6,6 +6,10 @@ body {
   @apply bg-[#FEFEFE] font-sans text-sm text-slate-500 font-light lowercase;
 }
 
+img {
+  border-radius: 0 !important;
+}
+
 input.slider {
   -webkit-appearance: none;
   appearance: none;

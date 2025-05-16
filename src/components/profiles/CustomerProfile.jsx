@@ -66,7 +66,7 @@ export default function CustomerProfile() {
           <img
             src={user.avatar.url}
             alt={user.avatar.alt || "avatar"}
-            className="w-16 h-16 mx-auto object-cover rounded-full mb-1"
+            className="w-16 h-16 mx-auto object-cover mb-1"
           />
         ) : (
           <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 mb-1" />

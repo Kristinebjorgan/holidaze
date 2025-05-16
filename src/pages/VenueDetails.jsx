@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
 import ImageCarousel from "../components/ImageCarousel";
+import { useLocation, Link } from "react-router-dom";
+
 
 export default function VenueDetails() {
   const { id } = useParams();
@@ -15,6 +17,10 @@ export default function VenueDetails() {
   });
   const [bookingSuccess, setBookingSuccess] = useState("");
   const [bookingError, setBookingError] = useState("");
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const selectedCountry = queryParams.get("country");
 
   useEffect(() => {
     (async () => {
@@ -98,7 +104,27 @@ export default function VenueDetails() {
 
   return (
     <section className="max-w-4xl mx-auto px-4 py-10 text-[#7A92A7] lowercase tracking-wide text-center">
-      {/* Hero Image */}
+      {/* breadcrumb links */}
+      <div className="text-left text-xs mb-6 text-[#7A92A7] lowercase">
+        <Link to="/venues" className="hover:underline">
+          all venues
+        </Link>
+        {selectedCountry && (
+          <>
+            {" "}
+            /{" "}
+            <Link
+              to={`/venues?country=${encodeURIComponent(selectedCountry)}`}
+              className="hover:underline"
+            >
+              {selectedCountry.toLowerCase()}
+            </Link>
+          </>
+        )}{" "}
+        / {venue.name?.toLowerCase()}
+      </div>
+
+      {/* hero Image */}
       {firstThreeImages[0] && (
         <img
           src={firstThreeImages[0].url}
@@ -107,18 +133,18 @@ export default function VenueDetails() {
         />
       )}
 
-      {/* Title + Location */}
+      {/* title + location */}
       <h1 className="text-xl font-light mb-1">{venue.name}</h1>
       <p className="text-xs mb-6">
         {venue.location?.address}, {venue.location?.country}
       </p>
 
-      {/* Description */}
+      {/* description */}
       <p className="whitespace-pre-line text-sm leading-relaxed mb-8 max-w-prose mx-auto">
         {venue.description}
       </p>
 
-      {/* Second Image */}
+      {/* 2nd img */}
       {firstThreeImages[1] && (
         <img
           src={firstThreeImages[1].url}
@@ -127,12 +153,12 @@ export default function VenueDetails() {
         />
       )}
 
-      {/* Review Placeholder */}
+      {/* Review  */}
       <div className="mb-10 text-sm italic text-slate-400">
         review section coming soon...
       </div>
 
-      {/* Features Table */}
+      {/* Features */}
       <div className="grid grid-cols-2 gap-y-4 text-sm mb-10 mx-auto w-max">
         <span>wifi</span>
         <span>{venue.meta?.wifi ? "yes" : "no"}</span>
@@ -144,17 +170,17 @@ export default function VenueDetails() {
         <span>{venue.meta?.pets ? "yes" : "no"}</span>
       </div>
 
-      {/* Third Image or Carousel */}
+      {/* Third Image / Carousel */}
       {firstThreeImages[2] && (
         <img
           src={firstThreeImages[2].url}
           alt={firstThreeImages[2].alt || "venue image"}
-          className="w-full h-[400px] object-cover mb-10"
+          className="w-full h-[400px] object-cover mb-10 rounded-none"
         />
       )}
       {remainingImages.length > 0 && <ImageCarousel images={remainingImages} />}
 
-      {/* Booking Glassmorphic Box */}
+      {/* Booking  Box */}
       <div className="bg-white/80 backdrop-blur-md border border-[#7A92A7]/20 p-6 mt-10 max-w-md mx-auto text-sm">
         <h3 className="text-md mb-4">book this venue</h3>
         <form onSubmit={handleBookingSubmit} className="space-y-4">

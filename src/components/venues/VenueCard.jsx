@@ -1,9 +1,12 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function VenueCard({ venue, heightClass }) {
+  const location = useLocation(); 
+  const query = location.search;
+
   return (
     <Link
-      to={`/venues/${venue.id}`}
+      to={`/venues/${venue.id}${query}`} 
       className={`relative block w-full ${heightClass || ""}`}
     >
       {venue.location?.country && (
