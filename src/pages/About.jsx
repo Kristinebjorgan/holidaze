@@ -1,25 +1,36 @@
 export default function About() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white/60 backdrop-blur-sm text-[#7A92A7] px-4">
-      <div className="bg-white/80 p-8 border border-[#7A92A7]/30 max-w-xl w-full text-sm lowercase leading-relaxed tracking-wide space-y-3 text-center">
-        <p>for unique stays — without the noise</p>
-        <p>for exploration — without being led</p>
-        <p>for research and inspiration — without the overload or pressure</p>
-
-        <p className="mt-6">
-          holidaze is a space to browse calmly, move freely, and choose
-          intuitively.
-        </p>
+    <main className="flex items-center justify-center px-4 py-16 bg-white/60 text-[#7A92A7] overflow-hidden">
+      <div className="bg-[#D4E9F7]/80 backdrop-blur-md p-8 max-w-xl w-full text-sm lowercase leading-relaxed tracking-wide text-center">
+        <p>holidaze is a calm space for finding your next stay.</p>
+        <br />
 
         <p>
-          built for travelers who prefer clarity over clutter, and quiet over
-          chaos.
+          built on principles of clarity, autonomy and respect, holidaze
+          doesn’t push or persuade. it offers a space to browse, decide, and
+          book at your own pace.
         </p>
+        <br />
+
         <p>
-          this is your journey — we just help you find where to stay along the
-          way.
+          there are no popups, no pressure, no tricks. just honest information
+          and a quiet interface.
+        </p>
+        <br />
+
+        <p>
+          we believe the experience of rest should begin the moment you start
+          exploring your next trip.
+        </p>
+        <br />
+
+        <p>
+          this isn’t just a booking platform, <br />
+          but a soft transition; <br />
+          from noise to clarity. <br />
+          from routine to rest.
         </p>
       </div>
-    </div>
+    </main>
   );
 }

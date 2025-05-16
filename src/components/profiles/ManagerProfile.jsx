@@ -261,7 +261,7 @@ function ManagerProfile() {
             return (
               <div
                 key={venue.id}
-                className="text-left text-sm text-[#7A92A7] bg-[#C6DAE7] p-4 mb-4"
+                className="text-left text-sm text-[#FEFEFE] bg-[#C6DAE7] p-4 mb-4"
               >
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-sm text-s">{venue.name}</h3>
@@ -278,7 +278,7 @@ function ManagerProfile() {
                   />
                 )}
 
-                <div className="flex justify-center gap-4 text-xs">
+                <div className="flex justify-center gap-4 text-[#7A92A7]gitadd  text-xs">
                   <button
                     className="hover:underline"
                     onClick={() => setViewingVenue(venue)}
