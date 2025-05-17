@@ -22,6 +22,21 @@ export default function VenueDetails() {
   const queryParams = new URLSearchParams(location.search);
   const selectedCountry = queryParams.get("country");
 
+  const amenityLabels = {
+    wifi: "Wi-Fi",
+    breakfast: "Breakfast",
+    parking: "Parking",
+    pets: "Pets allowed",
+    pool: "Pool",
+    sauna: "Sauna",
+    bathtub: "Bathtub",
+    seaview: "Sea view",
+    fireplace: "Fireplace",
+    airConditioning: "Air conditioning",
+    balcony: "Balcony",
+    garden: "Garden",
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -160,14 +175,12 @@ export default function VenueDetails() {
 
       {/* Features */}
       <div className="grid grid-cols-2 gap-y-4 text-sm mb-10 mx-auto w-max">
-        <span>wifi</span>
-        <span>{venue.meta?.wifi ? "yes" : "no"}</span>
-        <span>breakfast</span>
-        <span>{venue.meta?.breakfast ? "yes" : "no"}</span>
-        <span>parking</span>
-        <span>{venue.meta?.parking ? "yes" : "no"}</span>
-        <span>pets</span>
-        <span>{venue.meta?.pets ? "yes" : "no"}</span>
+        {Object.entries(amenityLabels).map(([key, label]) => (
+          <React.Fragment key={key}>
+            <span>{label.toLowerCase()}</span>
+            <span>{venue.meta?.[key] ? "yes" : "no"}</span>
+          </React.Fragment>
+        ))}
       </div>
 
       {/* Third Image / Carousel */}

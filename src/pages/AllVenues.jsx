@@ -5,8 +5,7 @@ import FilterModal from "../components/modals/FilterModal";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
 import { Link, useLocation } from "react-router-dom";
 import VenueSkeleton from "../components/VenueSkeleton";
-import { GlobeAltIcon } from "@heroicons/react/24/outline"; // outlined version
-
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
 const breakpointColumnsObj = {
   default: 3,
@@ -30,115 +29,109 @@ export default function AllVenues() {
   const [error, setError] = useState("");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [activeFilters, setActiveFilters] = useState(defaultFilters);
+  const [allFetchedVenues, setAllFetchedVenues] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [scrollWidthPx, setScrollWidthPx] = useState(1280);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const selectedCountry = queryParams.get("country");
   const searchQuery = queryParams.get("search");
-
-
-  const [allFetchedVenues, setAllFetchedVenues] = useState([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const loadMoreRef = useRef(null);
-  const [showScrollToTop, setShowScrollToTop] = useState(false); // 🆕
 
- useEffect(() => {
-   let isCancelled = false;
+  // Fetch venues
+  useEffect(() => {
+    let isCancelled = false;
 
-   async function fetchAllKribjiVenues() {
-     let all = [];
-     let currentPage = 1;
-     let keepGoing = true;
+    async function fetchAllKribjiVenues() {
+      let all = [];
+      let currentPage = 1;
+      let keepGoing = true;
+      const lowerSearch = searchQuery?.toLowerCase() || "";
 
-     const searchQuery = queryParams.get("search");
-     const lowerSearch = searchQuery?.toLowerCase() || "";
+      try {
+        while (keepGoing) {
+          const res = await fetch(
+            `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}&sort=created&_bookings=true`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-Noroff-API-Key": NOROFF_API_KEY,
+              },
+            }
+          );
 
-     try {
-       while (keepGoing) {
-         const res = await fetch(
-           `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}&sort=created&_bookings=true`,
-           {
-             headers: {
-               "Content-Type": "application/json",
-               "X-Noroff-API-Key": NOROFF_API_KEY,
-             },
-           }
-         );
+          const data = await res.json();
+          if (!res.ok)
+            throw new Error(data.errors?.[0]?.message || "Fetch failed");
 
-         const data = await res.json();
-         if (!res.ok)
-           throw new Error(data.errors?.[0]?.message || "Fetch failed");
+          const kribjiTagged = data.data.filter((venue) =>
+            venue.description?.toLowerCase().includes("kribji")
+          );
 
-         const kribjiTagged = data.data.filter((venue) =>
-           venue.description?.toLowerCase().includes("kribji")
-         );
+          all = [...all, ...kribjiTagged];
+          keepGoing = !data.meta?.isLastPage && kribjiTagged.length > 0;
+          currentPage++;
+        }
 
-         all = [...all, ...kribjiTagged];
+        if (!isCancelled) {
+          const countryFiltered = selectedCountry
+            ? all.filter(
+                (venue) =>
+                  venue.location?.country?.toLowerCase() ===
+                  selectedCountry.toLowerCase()
+              )
+            : all;
 
-         if (data.meta?.isLastPage || kribjiTagged.length === 0) {
-           keepGoing = false;
-         } else {
-           currentPage++;
-         }
-       }
+          const searchFiltered = lowerSearch
+            ? countryFiltered.filter((venue) => {
+                const content = [
+                  venue.name,
+                  venue.description,
+                  venue.location?.address,
+                  venue.location?.city,
+                  venue.location?.country,
+                ]
+                  .join(" ")
+                  .toLowerCase();
+                return content.includes(lowerSearch);
+              })
+            : countryFiltered;
 
-       if (!isCancelled) {
-         const countryFiltered = selectedCountry
-           ? all.filter(
-               (venue) =>
-                 venue.location?.country?.toLowerCase() ===
-                 selectedCountry.toLowerCase()
-             )
-           : all;
+          setAllFetchedVenues(searchFiltered);
 
-         const searchFiltered = lowerSearch
-           ? countryFiltered.filter((venue) => {
-               const content = [
-                 venue.name,
-                 venue.description,
-                 venue.location?.address,
-                 venue.location?.city,
-                 venue.location?.country,
-               ]
-                 .join(" ")
-                 .toLowerCase();
-               return content.includes(lowerSearch);
-             })
-           : countryFiltered;
+          const filtered = searchFiltered.filter((venue) => {
+            return (
+              venue.price <= activeFilters.price &&
+              venue.maxGuests >= activeFilters.guests &&
+              (!activeFilters.wifi || venue.meta?.wifi) &&
+              (!activeFilters.breakfast || venue.meta?.breakfast) &&
+              (!activeFilters.parking || venue.meta?.parking) &&
+              (!activeFilters.pets || venue.meta?.pets)
+            );
+          });
 
-         setAllFetchedVenues(searchFiltered);
+          setFilteredVenues(filtered);
+        }
+      } catch (err) {
+        console.error("Error fetching venues:", err);
+        setError(err.message);
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+    }
 
-         const filtered = searchFiltered.filter((venue) => {
-           return (
-             venue.price <= activeFilters.price &&
-             venue.maxGuests >= activeFilters.guests &&
-             (!activeFilters.wifi || venue.meta?.wifi) &&
-             (!activeFilters.breakfast || venue.meta?.breakfast) &&
-             (!activeFilters.parking || venue.meta?.parking) &&
-             (!activeFilters.pets || venue.meta?.pets)
-           );
-         });
+    setLoading(true);
+    fetchAllKribjiVenues();
 
-         setFilteredVenues(filtered);
-       }
-     } catch (err) {
-       console.error("Error fetching venues:", err);
-       setError(err.message);
-     } finally {
-       if (!isCancelled) setLoading(false);
-     }
-   }
+    return () => {
+      isCancelled = true;
+    };
+  }, [location.search]);
 
-   setLoading(true);
-   fetchAllKribjiVenues();
-
-   return () => {
-     isCancelled = true;
-   };
- }, [location.search]);
-
-
+  // Infinite scroll pagination
   useEffect(() => {
     let timeout;
     const observer = new IntersectionObserver(
@@ -158,17 +151,27 @@ export default function AllVenues() {
     }
 
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
-      }
+      if (loadMoreRef.current) observer.unobserve(loadMoreRef.current);
       if (timeout) clearTimeout(timeout);
     };
   }, [hasMore, loading]);
 
-  // 🆕 Show scroll-to-top when user scrolls
+  // Scroll effects
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollToTop(window.scrollY > 300);
+
+      const scrollY = window.scrollY;
+      const baseWidth = 1280;
+      const maxWidth = 1800;
+      const scrollRange = 900;
+
+      const newWidth = Math.min(
+        maxWidth,
+        baseWidth + (scrollY / scrollRange) * (maxWidth - baseWidth)
+      );
+
+      setScrollWidthPx(newWidth);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -197,9 +200,17 @@ export default function AllVenues() {
     setFilteredVenues(result);
   }
 
+  const sectionStyle = {
+    maxWidth: `${scrollWidthPx}px`,
+    transition: "max-width 0.4s ease-out",
+  };
+
   if (loading && page === 1) {
     return (
-      <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
+      <section
+        style={sectionStyle}
+        className="px-4 sm:px-6 md:px-8 lg:px-10 mx-auto mt-8"
+      >
         <Masonry
           breakpointCols={breakpointColumnsObj}
           className="flex -ml-4 w-auto"
@@ -219,7 +230,10 @@ export default function AllVenues() {
     return <p className="text-center py-8">No venues found.</p>;
 
   return (
-    <section className="px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-xl mx-auto mt-8">
+    <section
+      style={sectionStyle}
+      className="px-4 sm:px-6 md:px-8 lg:px-10 mx-auto mt-8"
+    >
       <div className="flex justify-start mb-6">
         <button
           onClick={() => setShowFilterModal(true)}
@@ -249,7 +263,6 @@ export default function AllVenues() {
         ))}
       </Masonry>
 
-      {/* tiny scroll loader */}
       {hasMore && (
         <div
           ref={loadMoreRef}
@@ -263,14 +276,12 @@ export default function AllVenues() {
         </div>
       )}
 
-      {/* globe icon link to homepage */}
       <div className="flex justify-center mt-12">
         <Link to="/globe" title="View globe">
           <GlobeAltIcon className="w-6 h-6 text-[#7A92A7] hover:opacity-80 transition" />
         </Link>
       </div>
 
-      {/* scroll-to-top button */}
       {showScrollToTop && (
         <button
           onClick={scrollToTop}

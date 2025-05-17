@@ -27,12 +27,20 @@ const continent = useContinentFromCountry(country);
   const [maxGuests, setMaxGuests] = useState("");
   const [description, setDescription] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
-  const [amenities, setAmenities] = useState({
-    wifi: false,
-    breakfast: false,
-    parking: false,
-    pets: false,
-  });
+const [amenities, setAmenities] = useState({
+  wifi: false,
+  breakfast: false,
+  parking: false,
+  pets: false,
+  pool: false,
+  sauna: false,
+  bathtub: false,
+  seaview: false,
+  fireplace: false,
+  airConditioning: false,
+  balcony: false,
+  garden: false,
+});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -178,7 +186,7 @@ async function handleSubmit(e) {
     <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-50">
       <div
         ref={modalRef}
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#FEFEFE]/70 backdrop-blur-md p-6 text-[#7A92A7] relative"
+        className="w-full max-w-3xl bg-[#FEFEFE]/80 backdrop-blur-md p-8 text-[#7A92A7] relative"
       >
         <button
           onClick={onClose}
@@ -302,9 +310,12 @@ async function handleSubmit(e) {
             </div>
           )}
 
-          <div className="flex justify-between flex-wrap gap-2 text-xs mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs mt-6">
             {Object.entries(amenities).map(([key, val]) => (
-              <label key={key} className="flex items-center gap-1">
+              <label
+                key={key}
+                className="flex items-center gap-2 bg-white/50 backdrop-blur-sm border border-[#7A92A7]/20 px-3 py-2 cursor-pointer hover:opacity-90"
+              >
                 <input
                   type="checkbox"
                   checked={val}
@@ -315,7 +326,7 @@ async function handleSubmit(e) {
                     }))
                   }
                 />
-                {key}
+                <span>{key.replace(/([A-Z])/g, " $1").toLowerCase()}</span>
               </label>
             ))}
           </div>

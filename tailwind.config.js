@@ -15,7 +15,15 @@ export default {
       },
       animation: {
         fadeInSlow: "fadeInSlow 0.5s ease-out forwards",
-        spinGlobe: "spinGlobe 180s linear infinite", 
+        spinGlobe: "spinGlobe 180s linear infinite",
+      },
+      maxWidth: {
+        "screen-xl": "1280px",
+        1400: "1400px",
+        1500: "1500px",
+        1600: "1600px",
+        1700: "1700px",
+        1800: "1800px",
       },
     },
   },
