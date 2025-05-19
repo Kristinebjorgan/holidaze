@@ -1,9 +1,9 @@
+import React from "react";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
 import ImageCarousel from "../components/ImageCarousel";
 import { useLocation, Link } from "react-router-dom";
-
 
 export default function VenueDetails() {
   const { id } = useParams();

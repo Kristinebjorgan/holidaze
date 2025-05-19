@@ -9,7 +9,10 @@ import About from "./pages/About";
 import GlobeLanding from "./components/GlobeLanding";
 
 function isLoggedIn() {
-  return Boolean(localStorage.getItem("token"));
+  return (
+    Boolean(localStorage.getItem("token")) ||
+    localStorage.getItem("guest") === "true"
+  );
 }
 
 function ProtectedRoute({ children }) {
