@@ -33,15 +33,14 @@ export default function AllVenues() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
-  const [scrollWidthPx, setScrollWidthPx] = useState(1280);
+  const [scrollY, setScrollY] = useState(0);
+  const loadMoreRef = useRef(null);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const selectedCountry = queryParams.get("country");
   const searchQuery = queryParams.get("search");
-  const loadMoreRef = useRef(null);
 
-  // Fetch venues
   useEffect(() => {
     let isCancelled = false;
 
@@ -86,8 +85,8 @@ export default function AllVenues() {
             : all;
 
           const searchFiltered = lowerSearch
-            ? countryFiltered.filter((venue) => {
-                const content = [
+            ? countryFiltered.filter((venue) =>
+                [
                   venue.name,
                   venue.description,
                   venue.location?.address,
@@ -95,9 +94,9 @@ export default function AllVenues() {
                   venue.location?.country,
                 ]
                   .join(" ")
-                  .toLowerCase();
-                return content.includes(lowerSearch);
-              })
+                  .toLowerCase()
+                  .includes(lowerSearch)
+              )
             : countryFiltered;
 
           setAllFetchedVenues(searchFiltered);
@@ -125,58 +124,47 @@ export default function AllVenues() {
 
     setLoading(true);
     fetchAllKribjiVenues();
-
     return () => {
       isCancelled = true;
     };
   }, [location.search]);
 
-  // Infinite scroll pagination
   useEffect(() => {
-    let timeout;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading && !timeout) {
-          timeout = setTimeout(() => {
-            setPage((prev) => prev + 1);
-            timeout = null;
-          }, 300);
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage((prev) => prev + 1);
         }
       },
       { threshold: 1 }
     );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => {
-      if (loadMoreRef.current) observer.unobserve(loadMoreRef.current);
-      if (timeout) clearTimeout(timeout);
-    };
+    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
   }, [hasMore, loading]);
 
-  // Scroll effects
   useEffect(() => {
     const handleScroll = () => {
+      setScrollY(window.scrollY);
       setShowScrollToTop(window.scrollY > 300);
-
-      const scrollY = window.scrollY;
-      const baseWidth = 1280;
-      const maxWidth = 1800;
-      const scrollRange = 900;
-
-      const newWidth = Math.min(
-        maxWidth,
-        baseWidth + (scrollY / scrollRange) * (maxWidth - baseWidth)
-      );
-
-      setScrollWidthPx(newWidth);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const scrollRange = 1200;
+  const baseWidth = 1280;
+  const maxWidth = 1920;
+  const baseMargin = 8;
+  const minMargin = 0;
+  const baseScale = 1;
+  const maxScale = 1.0;
+  const clampedScroll = Math.min(scrollY, scrollRange);
+  const containerWidth =
+    baseWidth + (clampedScroll / scrollRange) * (maxWidth - baseWidth);
+  const cardMargin =
+    baseMargin - (clampedScroll / scrollRange) * (baseMargin - minMargin);
+  const cardScale =
+    baseScale + (clampedScroll / scrollRange) * (maxScale - baseScale);
 
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -185,7 +173,6 @@ export default function AllVenues() {
   function applyFilters(filters) {
     setActiveFilters(filters);
     setShowFilterModal(false);
-
     const result = allFetchedVenues.filter((venue) => {
       return (
         venue.price <= filters.price &&
@@ -196,44 +183,28 @@ export default function AllVenues() {
         (!filters.pets || venue.meta?.pets)
       );
     });
-
     setFilteredVenues(result);
   }
 
-  const sectionStyle = {
-    maxWidth: `${scrollWidthPx}px`,
-    transition: "max-width 0.4s ease-out",
-  };
-
-  if (loading && page === 1) {
-    return (
-      <section
-        style={sectionStyle}
-        className="px-4 sm:px-6 md:px-8 lg:px-10 mx-auto mt-8"
-      >
-        <Masonry
-          breakpointCols={breakpointColumnsObj}
-          className="flex -ml-4 w-auto"
-          columnClassName="pl-4"
-        >
-          {Array.from({ length: 9 }).map((_, idx) => (
-            <VenueSkeleton key={idx} />
-          ))}
-        </Masonry>
-      </section>
-    );
-  }
-
-  if (error) return <p className="text-center text-red-500 py-8">{error}</p>;
-
-  if (!filteredVenues.length)
-    return <p className="text-center py-8">No venues found.</p>;
-
   return (
     <section
-      style={sectionStyle}
-      className="px-4 sm:px-6 md:px-8 lg:px-10 mx-auto mt-8"
+      style={{
+        maxWidth: containerWidth,
+        transition: "max-width 1.2s ease-out",
+      }}
+      className="w-full mx-auto mt-8 px-0"
     >
+      <style>
+        {`
+          .masonry-column {
+            padding-left: 0 !important;
+          }
+          .masonry-column > div {
+            margin: 0 !important;
+          }
+        `}
+      </style>
+
       <div className="flex justify-start mb-6">
         <button
           onClick={() => setShowFilterModal(true)}
@@ -253,14 +224,78 @@ export default function AllVenues() {
 
       <Masonry
         breakpointCols={breakpointColumnsObj}
-        className="flex -ml-4 w-auto"
-        columnClassName="pl-4"
+        className="flex w-full"
+        columnClassName="masonry-column"
       >
-        {filteredVenues.map((venue) => (
-          <div key={venue.id} className="mb-4 opacity-0 animate-fadeInSlow">
-            <VenueCard venue={venue} />
-          </div>
-        ))}
+        {filteredVenues.map((venue, index) => {
+          const isSecond = index === 1;
+          const isColumn1 = index % 3 === 0;
+          const isColumn2 = index % 3 === 1;
+          const isColumn3 = index % 3 === 2;
+
+          const lastIndex = filteredVenues.length - 1;
+
+          // ✅ Skip last item in column 1 or column 3 for mosaic balance
+          if (
+            (isColumn1 && index >= filteredVenues.length - 3) ||
+            (isColumn3 && index >= filteredVenues.length - 1)
+          ) {
+            return null;
+          }
+
+          const clonedCard = isSecond ? (
+            <div
+              key={`${venue.id}-clone`}
+              className="transition-all duration-700"
+              style={{
+                transform: `scale(${cardScale})`,
+                margin: `${cardMargin}px`,
+                transition: "all 0.6s ease-out",
+              }}
+            >
+              <VenueCard venue={venue} />
+            </div>
+          ) : null;
+
+          const topSpacer =
+            isColumn2 && index === 1 ? (
+              <div
+                key="column2-top-spacer"
+                style={{
+                  height: "40px",
+                  margin: `${cardMargin}px`,
+                }}
+              />
+            ) : null;
+
+const bottomSpacer =
+  isColumn2 && index === filteredVenues.length - 2 ? (
+    <div
+      key={`column2-bottom-spacer-${venue.id}`}
+      style={{
+        height: "40px",
+        margin: `${cardMargin}px`,
+      }}
+    />
+  ) : null;
+
+          return [
+            topSpacer,
+            <div
+              key={venue.id}
+              className="transition-all duration-700"
+              style={{
+                transform: `scale(${cardScale})`,
+                margin: `${cardMargin}px`,
+                transition: "all 0.6s ease-out",
+              }}
+            >
+              <VenueCard venue={venue} />
+            </div>,
+            isSecond && clonedCard,
+            bottomSpacer,
+          ];
+        })}
       </Masonry>
 
       {hasMore && (
@@ -270,7 +305,7 @@ export default function AllVenues() {
         >
           {loading && (
             <span className="text-xs text-[#7A92A7]/60 lowercase animate-pulse">
-              loading more venues...
+              loading venues
             </span>
           )}
         </div>
@@ -285,9 +320,9 @@ export default function AllVenues() {
       {showScrollToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 bg-white/70 backdrop-blur-md text-[#7A92A7] px-3 py-1 text-xs lowercase shadow-md hover:opacity-90 transition z-50"
+          className="fixed bottom-6 right-6 bg-white/70 text-[#7A92A7] px-3 py-1 text-xs lowercase hover:opacity-90 transition z-50"
         >
-          to top
+          top
         </button>
       )}
     </section>
