@@ -152,6 +152,18 @@ export default function LoginRegister() {
           {mode}
         </button>
       </form>
+      <button
+        type="button"
+        onClick={() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          localStorage.setItem("guest", "true");
+          navigate("/");
+        }}
+        className="mt-4 text-xs text-[#7A92A7]/70 hover:underline"
+      >
+        guest
+      </button>
     </div>
   );
 }
