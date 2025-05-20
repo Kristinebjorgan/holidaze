@@ -67,7 +67,7 @@ export default function AllVenues() {
             throw new Error(data.errors?.[0]?.message || "Fetch failed");
 
           const kribjiTagged = data.data.filter((venue) =>
-            venue.description?.toLowerCase().includes("kribji")
+            venue.description?.toLowerCase().includes("[kribji-v2]")
           );
 
           all = [...all, ...kribjiTagged];
