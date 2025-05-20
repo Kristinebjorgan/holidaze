@@ -1,13 +1,13 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useLocation, Link } from "react-router-dom";
 import { NOROFF_API_BASE_URL, NOROFF_API_KEY } from "../config";
 import ImageCarousel from "../components/ImageCarousel";
-import { useLocation, Link } from "react-router-dom";
+import { getReviewsForVenue } from "../components/useReview"; // Adjust path if needed
 
 export default function VenueDetails() {
   const { id } = useParams();
   const [venue, setVenue] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [booking, setBooking] = useState({
@@ -40,20 +40,27 @@ export default function VenueDetails() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(
+        const venueRes = await fetch(
           `${NOROFF_API_BASE_URL}/holidaze/venues/${id}`,
           {
-            headers: {
-              "X-Noroff-API-Key": NOROFF_API_KEY,
-            },
+            headers: { "X-Noroff-API-Key": NOROFF_API_KEY },
           }
         );
-        const data = await res.json();
-        if (!res.ok)
-          throw new Error(data.errors?.[0]?.message || "Failed to load venue");
-        setVenue(data.data);
+        const venueData = await venueRes.json();
+        if (!venueRes.ok)
+          throw new Error(
+            venueData.errors?.[0]?.message || "Failed to load venue"
+          );
+        setVenue(venueData.data);
+
+        // Load local reviews
+        const venueReviews = getReviewsForVenue(id);
+        const sorted = venueReviews.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+        setReviews(sorted);
       } catch (err) {
-        console.error("Error fetching venue:", err);
+        console.error("Error loading venue or reviews:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -72,13 +79,7 @@ export default function VenueDetails() {
       return;
     }
 
-    const formatToISO = (dateStr) => {
-      try {
-        return new Date(dateStr).toISOString();
-      } catch {
-        return "";
-      }
-    };
+    const formatToISO = (dateStr) => new Date(dateStr).toISOString();
 
     const payload = {
       venueId: id,
@@ -119,15 +120,14 @@ export default function VenueDetails() {
 
   return (
     <section className="max-w-4xl mx-auto px-4 py-10 text-[#7A92A7] lowercase tracking-wide text-center">
-      {/* breadcrumb links */}
+      {/* Breadcrumb */}
       <div className="text-left text-xs mb-6 text-[#7A92A7] lowercase">
         <Link to="/venues" className="hover:underline">
           all venues
         </Link>
         {selectedCountry && (
           <>
-            {" "}
-            /{" "}
+            {" / "}
             <Link
               to={`/venues?country=${encodeURIComponent(selectedCountry)}`}
               className="hover:underline"
@@ -135,11 +135,12 @@ export default function VenueDetails() {
               {selectedCountry.toLowerCase()}
             </Link>
           </>
-        )}{" "}
-        / {venue.name?.toLowerCase()}
+        )}
+        {" / "}
+        {venue.name?.toLowerCase()}
       </div>
 
-      {/* hero Image */}
+      {/* Hero Image */}
       {firstThreeImages[0] && (
         <img
           src={firstThreeImages[0].url}
@@ -148,18 +149,18 @@ export default function VenueDetails() {
         />
       )}
 
-      {/* title + location */}
+      {/* Title + Location */}
       <h1 className="text-xl font-light mb-1">{venue.name}</h1>
       <p className="text-xs mb-6">
         {venue.location?.address}, {venue.location?.country}
       </p>
 
-      {/* description */}
+      {/* Description */}
       <p className="whitespace-pre-line text-sm leading-relaxed mb-8 max-w-prose mx-auto">
         {venue.description}
       </p>
 
-      {/* 2nd img */}
+      {/* Second Image */}
       {firstThreeImages[1] && (
         <img
           src={firstThreeImages[1].url}
@@ -168,12 +169,21 @@ export default function VenueDetails() {
         />
       )}
 
-      {/* Review  */}
-      <div className="mb-10 text-sm italic text-slate-400">
-        review section coming soon...
-      </div>
+      {/* Latest Review */}
+      {reviews.length > 0 ? (
+        <div className="mb-10 text-sm italic text-slate-500 lowercase">
+          “{reviews[0].quote || reviews[0].text?.slice(0, 100)}”
+          <div className="text-xs text-slate-400 mt-1">
+            – {new Date(reviews[0].date).toLocaleDateString("en-GB")}
+          </div>
+        </div>
+      ) : (
+        <div className="mb-10 text-sm italic text-slate-400 lowercase">
+          no reviews yet
+        </div>
+      )}
 
-      {/* Features */}
+      {/* Amenities */}
       <div className="grid grid-cols-2 gap-y-4 text-sm mb-10 mx-auto w-max">
         {Object.entries(amenityLabels).map(([key, label]) => (
           <React.Fragment key={key}>
@@ -183,17 +193,19 @@ export default function VenueDetails() {
         ))}
       </div>
 
-      {/* Third Image / Carousel */}
+      {/* Third Image */}
       {firstThreeImages[2] && (
         <img
           src={firstThreeImages[2].url}
           alt={firstThreeImages[2].alt || "venue image"}
-          className="w-full h-[400px] object-cover mb-10 rounded-none"
+          className="w-full h-[400px] object-cover mb-10"
         />
       )}
+
+      {/* Carousel */}
       {remainingImages.length > 0 && <ImageCarousel images={remainingImages} />}
 
-      {/* Booking  Box */}
+      {/* Booking Form */}
       <div className="bg-white/80 backdrop-blur-md border border-[#7A92A7]/20 p-6 mt-10 max-w-md mx-auto text-sm">
         <h3 className="text-md mb-4">book this venue</h3>
         <form onSubmit={handleBookingSubmit} className="space-y-4">

@@ -235,7 +235,7 @@ export default function AllVenues() {
 
           const lastIndex = filteredVenues.length - 1;
 
-          // ✅ Skip last item in column 1 or column 3 for mosaic balance
+          // skip item in column 1 or column 3 for mosaic 
           if (
             (isColumn1 && index >= filteredVenues.length - 3) ||
             (isColumn3 && index >= filteredVenues.length - 1)

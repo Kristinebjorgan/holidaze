@@ -13,13 +13,13 @@ function ManagerProfile() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingVenue, setEditingVenue] = useState(null);
   const [viewingVenue, setViewingVenue] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [localPublishStatus, setLocalPublishStatus] = useState({});
   const navigate = useNavigate();
-  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    const stored = localStorage.getItem("user");
+    if (stored) setUser(JSON.parse(stored));
   }, []);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ function ManagerProfile() {
   const fetchManagerVenues = async (username) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
+      const res = await fetch(
         `${NOROFF_API_BASE_URL}/holidaze/profiles/${username}/venues?_owner=true`,
         {
           headers: {
@@ -38,43 +38,27 @@ function ManagerProfile() {
           },
         }
       );
-      const data = await response.json();
+      const data = await res.json();
       const venuesData = data.data || [];
       setVenues(venuesData);
 
-      // Initialize local publish status (default to true)
       const publishState = {};
       venuesData.forEach((v) => {
         publishState[v.id] = true;
       });
       setLocalPublishStatus(publishState);
-    } catch (error) {
-      console.error("Failed to fetch venues:", error);
+    } catch (err) {
+      console.error("Venue fetch failed:", err);
     }
   };
 
-  useEffect(() => {
-    const handleProfileUpdate = () => {
-      const updatedUser = JSON.parse(localStorage.getItem("user"));
-      setUser(updatedUser);
-    };
-
-    window.addEventListener("profile-updated", handleProfileUpdate);
-    return () => {
-      window.removeEventListener("profile-updated", handleProfileUpdate);
-    };
-  }, []);
-
   const handleVenueCreated = () => {
-    setTimeout(() => {
-      if (user?.name) fetchManagerVenues(user.name);
-    }, 500);
+    if (user?.name) fetchManagerVenues(user.name);
     setShowCreateModal(false);
-    setEditingVenue(null);
   };
 
   const handleVenueUpdated = () => {
-    fetchManagerVenues(user.name);
+    if (user?.name) fetchManagerVenues(user.name);
     setEditingVenue(null);
   };
 
@@ -82,25 +66,17 @@ function ManagerProfile() {
     if (!window.confirm("Are you sure you want to delete this venue?")) return;
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues/${id}`, {
+      await fetch(`${NOROFF_API_BASE_URL}/holidaze/venues/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
           "X-Noroff-API-Key": NOROFF_API_KEY,
         },
       });
-      if (!res.ok) throw new Error("Delete failed");
       fetchManagerVenues(user.name);
     } catch (err) {
       alert("Could not delete venue.");
     }
-  };
-
-  const togglePublish = (venueId) => {
-    setLocalPublishStatus((prev) => ({
-      ...prev,
-      [venueId]: !prev[venueId],
-    }));
   };
 
   const handleLogout = () => {
@@ -113,61 +89,52 @@ function ManagerProfile() {
     v.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (!user) return <p>Loading...</p>;
-
   return (
-    <section className="px-4 py-10 text-[#7A92A7] max-w-5xl mx-auto text-center">
-      <div className="mb-6">
-        <h1 className="text-sm mb-4 lowercase text-[#7A92A7]">
-          hello, {user.name}!
-        </h1>
-        {user.avatar?.url ? (
+    <section className="px-4 py-10 text-[#7A92A7] max-w-7xl mx-auto text-center">
+      <div className="mb-10">
+        <h1 className="text-sm mb-4 lowercase">hello, {user?.name}!</h1>
+        {user?.avatar?.url ? (
           <img
             src={user.avatar.url}
             alt={user.avatar.alt || "avatar"}
-            className="w-24 h-32 mx-auto object-cover mb-1"
+            className="w-16 h-16 mx-auto object-cover mb-1"
           />
         ) : (
-          <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 rounded-full mb-1" />
-        )}
-        {user.bio && (
-          <p className="text-xs text-[#7A92A7] mt-4 mb-2 max-w-xs mx-auto">
-            {user.bio}
-          </p>
+          <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 mb-1" />
         )}
         <button
-          className="text-[10px] text-[#7A92A7]/70 hover:underline hover:opacity-60 lowercase"
           onClick={() => setShowEditProfile(true)}
+          className="text-xs hover:underline hover:opacity-80"
         >
           edit
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm mb-6">
-        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+      {/* Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-10">
+        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">listings</p>
-          <p className="text-base">{venues.length}</p>
+          <p className="text-base font-medium">{venues.length}</p>
         </div>
-        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">bookings</p>
-          <p>{venues.reduce((sum, v) => sum + (v._count?.bookings || 0), 0)}</p>
+          <p className="text-base font-medium">
+            {venues.reduce((sum, v) => sum + (v._count?.bookings || 0), 0)}
+          </p>
         </div>
-        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">occupancy</p>
-          <p>
+          <p className="text-base font-medium">
             {(() => {
-              let totalBookedDays = 0;
-              let totalSpanDays = 0;
-
+              let booked = 0,
+                span = 0;
               venues.forEach((venue) => {
                 const bookings = venue.bookings || [];
                 bookings.forEach((b) => {
-                  const start = new Date(b.dateFrom);
-                  const end = new Date(b.dateTo);
-                  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                  totalBookedDays += days;
+                  booked +=
+                    (new Date(b.dateTo) - new Date(b.dateFrom)) /
+                    (1000 * 60 * 60 * 24);
                 });
-
                 if (bookings.length) {
                   const first = new Date(
                     Math.min(...bookings.map((b) => new Date(b.dateFrom)))
@@ -175,24 +142,16 @@ function ManagerProfile() {
                   const last = new Date(
                     Math.max(...bookings.map((b) => new Date(b.dateTo)))
                   );
-                  const span = Math.ceil(
-                    (last - first) / (1000 * 60 * 60 * 24)
-                  );
-                  totalSpanDays += span;
+                  span += (last - first) / (1000 * 60 * 60 * 24);
                 }
               });
-
-              const percentage =
-                totalSpanDays > 0
-                  ? Math.round((totalBookedDays / totalSpanDays) * 100)
-                  : 0;
-              return `${percentage}%`;
+              return span ? `${Math.round((booked / span) * 100)}%` : "0%";
             })()}
           </p>
         </div>
-        <div className="bg-[#C6DAE7] p-4 border border-white/10 text-white">
+        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">avg. price</p>
-          <p>
+          <p className="text-base font-medium">
             €
             {venues.length
               ? Math.round(
@@ -204,14 +163,14 @@ function ManagerProfile() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
+      {/* Actions */}
+      <div className="flex justify-between items-center mb-10">
         <button
           onClick={() => setShowCreateModal(true)}
-          className="text-sm text-[#7A92A7] hover:underline"
+          className="text-sm hover:underline"
         >
           add
         </button>
-
         <input
           type="text"
           value={search}
@@ -221,6 +180,68 @@ function ManagerProfile() {
         />
       </div>
 
+      {/* Venue Cards */}
+      <div className="grid gap-10 text-left">
+        {filteredVenues.length === 0 ? (
+          <p className="text-sm text-[#7A92A7]/70">
+            no listings match your search
+          </p>
+        ) : (
+          filteredVenues.map((venue) => (
+            <div
+              key={venue.id}
+              className="text-sm text-[#7A92A7] bg-[#D4E9F7]/60 backdrop-blur-md p-6 shadow-sm"
+            >
+              <h3 className="text-base font-medium mb-1">{venue.name}</h3>
+              <p className="text-xs mb-1">{venue.location?.address}</p>
+              <p className="text-xs mb-4">€{venue.price}</p>
+
+              {venue.media?.[0]?.url && (
+                <div className="relative overflow-hidden mb-4">
+                  <img
+                    src={venue.media[0].url}
+                    alt={venue.media[0].alt}
+                    className="w-full h-48 object-cover transition-transform duration-300 ease-in-out hover:scale-105"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-center gap-4 text-xs">
+                <button
+                  onClick={() => setViewingVenue(venue)}
+                  className="hover:underline"
+                >
+                  view
+                </button>
+                <button
+                  onClick={() => setEditingVenue(venue)}
+                  className="hover:underline"
+                >
+                  edit
+                </button>
+                <button
+                  onClick={() => handleDeleteVenue(venue.id)}
+                  className="hover:underline"
+                >
+                  delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-20">
+        <button
+          onClick={handleLogout}
+          className="text-xs hover:underline hover:text-gray-600"
+        >
+          log out
+        </button>
+      </div>
+
+      {/* Modals */}
       {showCreateModal && (
         <AddListingModal
           onClose={() => setShowCreateModal(false)}
@@ -249,69 +270,6 @@ function ManagerProfile() {
           }}
         />
       )}
-      <div className="grid gap-12">
-        {filteredVenues.length === 0 ? (
-          <p className="text-[#7A92A7]/70 text-sm">
-            no listings match your search
-          </p>
-        ) : (
-          filteredVenues.map((venue) => {
-            const isPublished = localPublishStatus[venue.id];
-
-            return (
-              <div
-                key={venue.id}
-                className="text-left text-sm text-[#FEFEFE] bg-[#C6DAE7] p-4 mb-4"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-sm text-s">{venue.name}</h3>
-                </div>
-
-                <p className="text-xs mb-1">{venue.location?.address}</p>
-                <p className="text-xs mb-2">€{venue.price}</p>
-
-                {venue.media?.[0]?.url && (
-                  <img
-                    src={venue.media[0].url}
-                    alt={venue.media[0].alt}
-                    className="w-full h-40 object-cover mb-4"
-                  />
-                )}
-
-                <div className="flex justify-center gap-4 text-[#7A92A7]gitadd  text-xs">
-                  <button
-                    className="hover:underline"
-                    onClick={() => setViewingVenue(venue)}
-                  >
-                    view
-                  </button>
-                  <button
-                    className="hover:underline"
-                    onClick={() => setEditingVenue(venue)}
-                  >
-                    edit
-                  </button>
-                  <button
-                    className="hover:underline"
-                    onClick={() => handleDeleteVenue(venue.id)}
-                  >
-                    delete
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <div className="mt-20">
-        <button
-          onClick={handleLogout}
-          className="text-xs text-[#7A92A7] hover:text-gray-600"
-        >
-          log out
-        </button>
-      </div>
     </section>
   );
 }

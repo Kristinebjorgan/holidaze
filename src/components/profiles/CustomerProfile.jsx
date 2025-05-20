@@ -39,8 +39,13 @@ export default function CustomerProfile() {
         }
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.errors?.[0]?.message || "Could not load bookings.");
-      setBookings(data.data.sort((a, b) => new Date(b.dateFrom) - new Date(a.dateFrom)));
+      if (!res.ok)
+        throw new Error(
+          data.errors?.[0]?.message || "Could not load bookings."
+        );
+      setBookings(
+        data.data.sort((a, b) => new Date(b.dateFrom) - new Date(a.dateFrom))
+      );
     } catch (err) {
       console.error("Booking fetch error:", err);
     }
@@ -56,11 +61,9 @@ export default function CustomerProfile() {
     navigate("/auth");
   };
 
-  const today = new Date();
-
   return (
-    <section className="px-4 py-10 text-[#7A92A7] max-w-5xl mx-auto text-center">
-      <div className="mb-6">
+    <section className="px-4 py-10 text-[#7A92A7] max-w-7xl mx-auto text-center">
+      <div className="mb-10">
         <h1 className="text-sm mb-4 lowercase">hello, {user?.name}</h1>
         {user?.avatar?.url ? (
           <img
@@ -81,13 +84,16 @@ export default function CustomerProfile() {
 
       <h2 className="text-sm mb-10">upcoming trips</h2>
 
-      <div className="grid gap-12 text-left">
+      <div className="grid gap-10 text-left">
         {bookings.length === 0 ? (
           <p className="text-gray-400 text-sm">no trips yet</p>
         ) : (
           bookings.map((booking) => {
             const isPast =
-              new Date(booking.dateTo).getTime() < today.setHours(0, 0, 0, 0);
+              new Date() >= new Date(booking.dateTo).setHours(12, 0, 0, 0);
+            const isReviewed =
+              booking.meta?.reviewed || booking._reviewed === true;
+
             const formattedFrom = new Date(booking.dateFrom).toLocaleDateString(
               "en-GB"
             );
@@ -98,13 +104,13 @@ export default function CustomerProfile() {
             return (
               <div
                 key={booking.id}
-                className="text-left text-sm text-[#7A92A7] bg-[#C6DAE7] p-4 mb-4"
+                className="text-sm text-[#7A92A7] bg-[#D4E9F7]/60 backdrop-blur-md p-6 shadow-sm"
               >
-                <h3 className="text-base text-white mb-1">
+                <h3 className="text-base font-medium mb-1">
                   {booking.venue?.name?.toLowerCase()}
                 </h3>
                 <p className="text-xs mb-1">
-                  {booking.venue?.location?.city?.toLowerCase()},{" "}
+                  {booking.venue?.location?.address?.toLowerCase()},{" "}
                   {booking.venue?.location?.country?.toLowerCase()}
                 </p>
                 <p className="text-xs mb-4 text-[#7A92A7]/70">
@@ -112,15 +118,23 @@ export default function CustomerProfile() {
                 </p>
 
                 {booking.venue?.media?.[0]?.url && (
-                  <div className="relative">
+                  <div className="relative overflow-hidden mb-4">
                     <img
                       src={booking.venue.media[0].url}
                       alt={booking.venue.media[0].alt || "venue"}
-                      className="w-full h-40 object-cover mb-4"
+                      className="w-full h-48 object-cover transition-transform duration-300 ease-in-out hover:scale-105"
                     />
-                    {isPast && (
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm pointer-events-none" />
-                    )}
+                  </div>
+                )}
+
+                {isPast && !isReviewed && (
+                  <div className="flex justify-center mb-4">
+                    <button
+                      onClick={() => setReviewBooking(booking)}
+                      className="text-xs hover:underline"
+                    >
+                      review
+                    </button>
                   </div>
                 )}
 
@@ -132,20 +146,20 @@ export default function CustomerProfile() {
                     view
                   </button>
                   {!isPast && (
-                    <button
-                      onClick={() => setEditingBooking(booking)}
-                      className="hover:underline"
-                    >
-                      edit
-                    </button>
-                  )}
-                  {!isPast && (
-                    <button
-                      onClick={() => setCancelBooking(booking)}
-                      className="hover:underline"
-                    >
-                      cancel
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setEditingBooking(booking)}
+                        className="hover:underline"
+                      >
+                        edit
+                      </button>
+                      <button
+                        onClick={() => setCancelBooking(booking)}
+                        className="hover:underline"
+                      >
+                        cancel
+                      </button>
+                    </>
                   )}
                   {isPast && (
                     <button
@@ -175,7 +189,6 @@ export default function CustomerProfile() {
         log out
       </button>
 
-      {/* Modals */}
       {showEditModal && (
         <EditProfileModal
           onClose={() => setShowEditModal(false)}
