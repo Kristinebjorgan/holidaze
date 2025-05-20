@@ -227,77 +227,20 @@ export default function AllVenues() {
         className="flex w-full"
         columnClassName="masonry-column"
       >
-        {filteredVenues.map((venue, index) => {
-          const isSecond = index === 1;
-          const isColumn1 = index % 3 === 0;
-          const isColumn2 = index % 3 === 1;
-          const isColumn3 = index % 3 === 2;
-
-          const lastIndex = filteredVenues.length - 1;
-
-          // skip item in column 1 or column 3 for mosaic 
-          if (
-            (isColumn1 && index >= filteredVenues.length - 3) ||
-            (isColumn3 && index >= filteredVenues.length - 1)
-          ) {
-            return null;
-          }
-
-          const clonedCard = isSecond ? (
-            <div
-              key={`${venue.id}-clone`}
-              className="transition-all duration-700"
-              style={{
-                transform: `scale(${cardScale})`,
-                margin: `${cardMargin}px`,
-                transition: "all 0.6s ease-out",
-              }}
-            >
-              <VenueCard venue={venue} />
-            </div>
-          ) : null;
-
-          const topSpacer =
-            isColumn2 && index === 1 ? (
-              <div
-                key="column2-top-spacer"
-                style={{
-                  height: "40px",
-                  margin: `${cardMargin}px`,
-                }}
-              />
-            ) : null;
-
-const bottomSpacer =
-  isColumn2 && index === filteredVenues.length - 2 ? (
-    <div
-      key={`column2-bottom-spacer-${venue.id}`}
-      style={{
-        height: "40px",
-        margin: `${cardMargin}px`,
-      }}
-    />
-  ) : null;
-
-          return [
-            topSpacer,
-            <div
-              key={venue.id}
-              className="transition-all duration-700"
-              style={{
-                transform: `scale(${cardScale})`,
-                margin: `${cardMargin}px`,
-                transition: "all 0.6s ease-out",
-              }}
-            >
-              <VenueCard venue={venue} />
-            </div>,
-            isSecond && clonedCard,
-            bottomSpacer,
-          ];
-        })}
+        {filteredVenues.map((venue, index) => (
+          <div
+            key={venue.id}
+            className="transition-all duration-700"
+            style={{
+              transform: `scale(${cardScale})`,
+              margin: `${cardMargin}px`,
+              transition: "all 0.6s ease-out",
+            }}
+          >
+            <VenueCard venue={venue} />
+          </div>
+        ))}
       </Masonry>
-
       {hasMore && (
         <div
           ref={loadMoreRef}
