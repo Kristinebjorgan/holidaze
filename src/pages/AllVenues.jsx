@@ -226,31 +226,35 @@ async function fetchAllKribjiVenues() {
         className="flex w-full"
         columnClassName="masonry-column"
       >
-        {loading
-          ? Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="transition-transform duration-700 ease-out"
-                style={{
-                  transform: `scale(${cardScale})`,
-                  margin: `${cardMargin}px`,
-                }}
-              >
-                <VenueSkeleton />
-              </div>
-            ))
-          : filteredVenues.map((venue) => (
-              <div
-                key={venue.id}
-                className="transition-transform duration-700 ease-out"
-                style={{
-                  transform: `scale(${cardScale})`,
-                  margin: `${cardMargin}px`,
-                }}
-              >
-                <VenueCard venue={venue} />
-              </div>
-            ))}
+        {/* Placeholder skeletons while loading */}
+        {loading &&
+          Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={`skeleton-${index}`}
+              className="transition-transform duration-700 ease-out"
+              style={{
+                transform: `scale(${cardScale})`,
+                margin: `${cardMargin}px`,
+              }}
+            >
+              <VenueSkeleton />
+            </div>
+          ))}
+
+        {/* Real venue cards */}
+        {!loading &&
+          filteredVenues.map((venue) => (
+            <div
+              key={venue.id}
+              className="transition-transform duration-700 ease-out"
+              style={{
+                transform: `scale(${cardScale})`,
+                margin: `${cardMargin}px`,
+              }}
+            >
+              <VenueCard venue={venue} />
+            </div>
+          ))}
       </Masonry>
 
       {hasMore && (

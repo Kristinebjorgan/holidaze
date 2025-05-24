@@ -1,11 +1,16 @@
+// tailwind.config.js
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       letterSpacing: {
-        wide25: "0.25em", 
+        wide25: "0.25em",
       },
       keyframes: {
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
         fadeInSlow: {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -16,6 +21,7 @@ export default {
         },
       },
       animation: {
+        shimmer: "shimmer 1.5s infinite linear",
         fadeInSlow: "fadeInSlow 0.5s ease-out forwards",
         spinGlobe: "spinGlobe 180s linear infinite",
       },
