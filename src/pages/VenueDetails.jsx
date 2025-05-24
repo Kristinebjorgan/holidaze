@@ -146,6 +146,7 @@ export default function VenueDetails() {
           src={firstThreeImages[0].url}
           alt={firstThreeImages[0].alt || "venue hero image"}
           className="w-full h-[400px] object-cover mb-6"
+          loading="lazy"
         />
       )}
 

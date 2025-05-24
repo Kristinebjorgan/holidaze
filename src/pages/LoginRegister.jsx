@@ -70,7 +70,7 @@ export default function LoginRegister() {
 
   return (
     <div className="px-6 py-20 max-w-xs mx-auto text-center text-[#7A92A7] lowercase text-sm">
-      {/* Mode toggle */}
+      {/* toggle */}
       <div className="flex justify-center gap-6 mb-10">
         <button
           type="button"

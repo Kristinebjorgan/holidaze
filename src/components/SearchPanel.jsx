@@ -35,7 +35,7 @@ export default function SearchPanel({ onClose }) {
         </button>
       </div>
 
-      {/* Search Input */}
+      {/* Search */}
       <div className="mb-10 relative max-w-md mx-auto">
         <input
           type="text"
@@ -54,7 +54,7 @@ export default function SearchPanel({ onClose }) {
         </button>
       </div>
 
-      {/* Continent Buttons */}
+      {/* Continents */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-sm text-center mb-10">
         {Object.keys(CONTINENT_COUNTRY_MAP).map((continentKey) => {
           const label = continentKey.replace("-", " ");

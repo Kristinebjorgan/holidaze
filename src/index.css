@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 body {
-  @apply bg-[#FEFEFE] font-sans text-sm text-slate-500 font-light lowercase;
+  @apply bg-[#FEFEFE] tracking-wide25 font-sans text-sm text-slate-500 font-light lowercase;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 img {
@@ -15,7 +16,7 @@ input.slider {
   appearance: none;
   width: 100%;
   height: 1px;
-  background-color: #7A92A7;
+  background-color: #7a92a7;
   margin: 0;
   padding: 0;
   position: relative;
@@ -26,7 +27,7 @@ input.slider::-webkit-slider-thumb {
   appearance: none;
   width: 2px;
   height: 20px;
-  background-color: #7A92A7;
+  background-color: #7a92a7;
   border: none;
   margin-top: -9.5px;
   cursor: pointer;
@@ -35,24 +36,25 @@ input.slider::-webkit-slider-thumb {
 input.slider::-moz-range-thumb {
   width: 2px;
   height: 20px;
-  background-color: #7A92A7;
+  background-color: #7a92a7;
   border: none;
   cursor: pointer;
 }
 
 svg {
-  background-color: #FEFEFE;
+  background-color: #fefefe;
   transform-origin: 50% 50%;
 }
 
 svg path {
-  fill: #E9F5FB;
-  transition: fill 0.3s ease, filter 0.3s ease;
+  fill: #e9f5fb;
+  transition:
+    fill 0.3s ease,
+    filter 0.3s ease;
 }
 
 svg path:hover {
-  fill: #B6E5F9;
-  filter: drop-shadow(0 0 6px #B6E5F9);
+  fill: #b6e5f9;
+  filter: drop-shadow(0 0 6px #b6e5f9);
   cursor: pointer;
 }
-

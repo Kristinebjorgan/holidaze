@@ -20,7 +20,7 @@ export default function ImageCarousel({ images }) {
         className="w-full h-[400px] object-cover rounded"
       />
 
-      {/* Arrows (ghost-white, subtle) */}
+      {/* arrows */}
       <button
         onClick={prevSlide}
         className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl hover:opacity-75 transition"
@@ -36,7 +36,7 @@ export default function ImageCarousel({ images }) {
         ›
       </button>
 
-      {/* Dots */}
+      {/* next */}
       <div className="flex justify-center gap-2 mt-2">
         {images.map((_, index) => (
           <button

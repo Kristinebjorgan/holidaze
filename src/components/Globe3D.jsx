@@ -15,7 +15,7 @@ export default function Globe3D({ onCountryClick }) {
     height: window.innerHeight,
   });
 
-  // Update on window resize
+  // update on window resize
   useEffect(() => {
     const handleResize = () => {
       setDimensions({

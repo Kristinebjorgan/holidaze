@@ -1,8 +1,10 @@
-// tailwind.config.js
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
+      letterSpacing: {
+        wide25: "0.25em", 
+      },
       keyframes: {
         fadeInSlow: {
           "0%": { opacity: "0", transform: "translateY(10px)" },

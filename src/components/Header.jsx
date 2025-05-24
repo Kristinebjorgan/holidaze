@@ -20,15 +20,18 @@ const handleHomeClick = () => {
 
   return (
     <>
-      <header className="flex justify-between items-center px-6 py-4 text-sm text-slate-500 font-light lowercase">
+      <header className="tracking-wide25 flex justify-between items-center px-6 py-4 text-sm text-slate-500 font-light lowercase">
         {/* home + search */}
         <div className="flex gap-6">
-          <button onClick={handleHomeClick} className="hover:underline">
+          <button
+            onClick={handleHomeClick}
+            className="tracking-wide25 hover:underline"
+          >
             home
           </button>
           <button
             onClick={() => setShowSearch(true)}
-            className="hover:underline"
+            className="hover:underline tracking-wide25"
           >
             search
           </button>

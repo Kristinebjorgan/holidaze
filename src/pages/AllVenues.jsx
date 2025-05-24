@@ -207,7 +207,7 @@ async function fetchAllKribjiVenues() {
       <div className="flex justify-start mb-6">
         <button
           onClick={() => setShowFilterModal(true)}
-          className="text-sm hover:underline text-[#7A92A7] lowercase"
+          className="text-sm tracking-wide25 hover:underline text-[#7A92A7] lowercase"
         >
           filter
         </button>
@@ -226,20 +226,33 @@ async function fetchAllKribjiVenues() {
         className="flex w-full"
         columnClassName="masonry-column"
       >
-        {filteredVenues.map((venue, index) => (
-          <div
-            key={venue.id}
-            className="transition-all duration-700"
-            style={{
-              transform: `scale(${cardScale})`,
-              margin: `${cardMargin}px`,
-              transition: "all 0.6s ease-out",
-            }}
-          >
-            <VenueCard venue={venue} />
-          </div>
-        ))}
+        {loading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="transition-transform duration-700 ease-out"
+                style={{
+                  transform: `scale(${cardScale})`,
+                  margin: `${cardMargin}px`,
+                }}
+              >
+                <VenueSkeleton />
+              </div>
+            ))
+          : filteredVenues.map((venue) => (
+              <div
+                key={venue.id}
+                className="transition-transform duration-700 ease-out"
+                style={{
+                  transform: `scale(${cardScale})`,
+                  margin: `${cardMargin}px`,
+                }}
+              >
+                <VenueCard venue={venue} />
+              </div>
+            ))}
       </Masonry>
+
       {hasMore && (
         <div
           ref={loadMoreRef}

@@ -6,7 +6,9 @@ import ManagerProfile from "./components/profiles/ManagerProfile";
 import AllVenues from "./pages/AllVenues";
 import VenueDetails from "./pages/VenueDetails";
 import About from "./pages/About";
-import GlobeLanding from "./components/GlobeLanding";
+import { lazy, Suspense } from "react";
+
+const GlobeLanding = lazy(() => import("./components/GlobeLanding"));
 
 function isLoggedIn() {
   return (
@@ -22,10 +24,19 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <Routes>
-      {/* ✅ Route WITHOUT Layout */}
-      <Route path="/" element={<GlobeLanding />} />
+      {/* Route without Layout */}
+      <Route
+        path="/"
+        element={
+          <Suspense
+            fallback={<div className="text-center mt-10">Loading...</div>}
+          >
+            <GlobeLanding />
+          </Suspense>
+        }
+      />
 
-      {/* ✅ All other routes WITH Layout */}
+      {/* routes with Layout */}
       <Route element={<Layout />}>
         <Route path="/venues" element={<AllVenues />} />
         <Route path="/venues/:id" element={<VenueDetails />} />
