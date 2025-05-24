@@ -10,6 +10,29 @@ export default function Globe3D({ onCountryClick }) {
   const [hovered, setHovered] = useState(null);
   const [tooltip, setTooltip] = useState({ show: false, name: "", x: 0, y: 0 });
 
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  // Update on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+const globeSize = Math.min(
+  dimensions.width * 0.8,
+  dimensions.height * 0.6,
+  500
+);
+
   // Load countries
   useEffect(() => {
     fetch("https://unpkg.com/world-atlas@2.0.2/countries-110m.json")
@@ -20,7 +43,7 @@ export default function Globe3D({ onCountryClick }) {
       });
   }, []);
 
-  // Setup globeconst geoData = feature(data, data.objects.countries);
+  // Setup globe
   useEffect(() => {
     const globe = globeRef.current;
     if (!globe) return;
@@ -37,7 +60,6 @@ export default function Globe3D({ onCountryClick }) {
   // Handle hover
   const handleHover = (feat) => {
     setHovered(feat);
-
     setTooltip((prev) => ({
       ...prev,
       name: feat?.properties?.name || "",
@@ -63,6 +85,7 @@ export default function Globe3D({ onCountryClick }) {
       }}
     >
       <Globe
+        key={globeSize} 
         ref={globeRef}
         globeImageUrl={null}
         backgroundColor="rgba(0,0,0,0)"
@@ -76,8 +99,8 @@ export default function Globe3D({ onCountryClick }) {
         polygonLabel={() => ""}
         onPolygonHover={handleHover}
         onPolygonClick={(d) => onCountryClick(d?.properties?.name)}
-        width={600}
-        height={600}
+        width={globeSize}
+        height={globeSize}
       />
 
       {tooltip.show && (

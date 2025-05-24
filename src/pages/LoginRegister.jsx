@@ -58,7 +58,9 @@ export default function LoginRegister() {
         if (res?.data?.accessToken) {
           localStorage.setItem("token", res.data.accessToken);
           localStorage.setItem("user", JSON.stringify(res.data));
-          navigate("/");
+          navigate(
+            res.data.venueManager ? "/account/manager" : "/account/customer"
+          );
         } else alert("login failed.");
       }
     } catch (err) {

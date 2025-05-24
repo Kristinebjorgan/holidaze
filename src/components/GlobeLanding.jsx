@@ -16,15 +16,22 @@ export default function GlobeLanding() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-[#fefefe] text-[#7A92A7]">
-      <Globe3D onCountryClick={handleCountryClick} />
+    <div className="relative w-full h-screen bg-[#fefefe] text-[#7A92A7] overflow-hidden">
+      {/* Globe container with responsive sizing */}
+      <div className="w-full h-full flex items-center justify-center">
+        <Globe3D onCountryClick={handleCountryClick} />
+      </div>
 
-      <button
-        onClick={handleExploreClick}
-        className="text-xs mt-6 lowercase opacity-70 absolute bottom-6"
-      >
-        explore
-      </button>
+      {/* Explore button */}
+      <div className="absolute bottom-6 w-full text-center px-4 z-10">
+        {" "}
+        <button
+          onClick={handleExploreClick}
+          className="text-xs lowercase opacity-70 hover:opacity-100 transition"
+        >
+          explore
+        </button>
+      </div>
     </div>
   );
 }

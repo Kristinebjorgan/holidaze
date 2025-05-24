@@ -44,83 +44,82 @@ export default function AllVenues() {
   useEffect(() => {
     let isCancelled = false;
 
-    async function fetchAllKribjiVenues() {
-      let all = [];
-      let currentPage = 1;
-      let keepGoing = true;
-      const lowerSearch = searchQuery?.toLowerCase() || "";
+async function fetchAllKribjiVenues() {
+  let all = [];
+  let currentPage = 1;
+  let keepGoing = true;
+  const lowerSearch = searchQuery?.toLowerCase() || "";
 
-      try {
-        while (keepGoing) {
-          const res = await fetch(
-            `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}&sort=created&_bookings=true`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-Noroff-API-Key": NOROFF_API_KEY,
-              },
-            }
-          );
-
-          const data = await res.json();
-          if (!res.ok)
-            throw new Error(data.errors?.[0]?.message || "Fetch failed");
-
-          const kribjiTagged = data.data.filter((venue) =>
-            venue.description?.toLowerCase().includes("[kribji-v2]")
-          );
-
-          all = [...all, ...kribjiTagged];
-          keepGoing = !data.meta?.isLastPage && kribjiTagged.length > 0;
-          currentPage++;
+  try {
+    while (keepGoing) {
+      const res = await fetch(
+        `${NOROFF_API_BASE_URL}/holidaze/venues?limit=100&page=${currentPage}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Noroff-API-Key": NOROFF_API_KEY,
+          },
         }
+      );
 
-        if (!isCancelled) {
-          const countryFiltered = selectedCountry
-            ? all.filter(
-                (venue) =>
-                  venue.location?.country?.toLowerCase() ===
-                  selectedCountry.toLowerCase()
-              )
-            : all;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.errors?.[0]?.message || "Fetch failed");
 
-          const searchFiltered = lowerSearch
-            ? countryFiltered.filter((venue) =>
-                [
-                  venue.name,
-                  venue.description,
-                  venue.location?.address,
-                  venue.location?.city,
-                  venue.location?.country,
-                ]
-                  .join(" ")
-                  .toLowerCase()
-                  .includes(lowerSearch)
-              )
-            : countryFiltered;
+      const kribjiTagged = data.data.filter((venue) =>
+        venue.description?.toLowerCase().includes("[kribji-v2]")
+      );
 
-          setAllFetchedVenues(searchFiltered);
-
-          const filtered = searchFiltered.filter((venue) => {
-            return (
-              venue.price <= activeFilters.price &&
-              venue.maxGuests >= activeFilters.guests &&
-              (!activeFilters.wifi || venue.meta?.wifi) &&
-              (!activeFilters.breakfast || venue.meta?.breakfast) &&
-              (!activeFilters.parking || venue.meta?.parking) &&
-              (!activeFilters.pets || venue.meta?.pets)
-            );
-          });
-
-          setFilteredVenues(filtered);
-        }
-      } catch (err) {
-        console.error("Error fetching venues:", err);
-        setError(err.message);
-      } finally {
-        if (!isCancelled) setLoading(false);
-      }
+      all = [...all, ...kribjiTagged];
+      keepGoing = !data.meta?.isLastPage;
+      currentPage++;
     }
+
+    if (!isCancelled) {
+      const countryFiltered = selectedCountry
+        ? all.filter(
+            (venue) =>
+              venue.location?.country?.toLowerCase() ===
+              selectedCountry.toLowerCase()
+          )
+        : all;
+
+      const searchFiltered = lowerSearch
+        ? countryFiltered.filter((venue) =>
+            [
+              venue.name,
+              venue.description,
+              venue.location?.address,
+              venue.location?.city,
+              venue.location?.country,
+            ]
+              .join(" ")
+              .toLowerCase()
+              .includes(lowerSearch)
+          )
+        : countryFiltered;
+
+      setAllFetchedVenues(searchFiltered);
+
+      const filtered = searchFiltered.filter((venue) => {
+        return (
+          venue.price <= activeFilters.price &&
+          venue.maxGuests >= activeFilters.guests &&
+          (!activeFilters.wifi || venue.meta?.wifi) &&
+          (!activeFilters.breakfast || venue.meta?.breakfast) &&
+          (!activeFilters.parking || venue.meta?.parking) &&
+          (!activeFilters.pets || venue.meta?.pets)
+        );
+      });
+
+      setFilteredVenues(filtered);
+    }
+  } catch (err) {
+    console.error("Error fetching venues:", err);
+    setError(err.message);
+  } finally {
+    if (!isCancelled) setLoading(false);
+  }
+}
 
     setLoading(true);
     fetchAllKribjiVenues();

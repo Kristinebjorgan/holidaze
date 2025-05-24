@@ -102,29 +102,37 @@ function ManagerProfile() {
         ) : (
           <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 mb-1" />
         )}
-        <button
-          onClick={() => setShowEditProfile(true)}
-          className="text-xs hover:underline hover:opacity-80"
-        >
-          edit
-        </button>
+        <div className="flex justify-center gap-6 mt-2 text-xs">
+          <button
+            onClick={() => setShowEditProfile(true)}
+            className="hover:underline hover:opacity-80"
+          >
+            update
+          </button>
+          <button
+            onClick={() => alert("Messaging coming soon")}
+            className="hover:underline hover:opacity-80 flex items-center gap-1"
+          >
+            messages
+          </button>
+        </div>
       </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-10">
         <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">listings</p>
-          <p className="text-base font-medium">{venues.length}</p>
+          <p className="text-base font-light">{venues.length}</p>
         </div>
         <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">bookings</p>
-          <p className="text-base font-medium">
+          <p className="text-base font-light">
             {venues.reduce((sum, v) => sum + (v._count?.bookings || 0), 0)}
           </p>
         </div>
         <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">occupancy</p>
-          <p className="text-base font-medium">
+          <p className="text-base font-light">
             {(() => {
               let booked = 0,
                 span = 0;

@@ -12,9 +12,8 @@ export default function Header() {
 
 
 const handleHomeClick = () => {
-  localStorage.removeItem("search"); // optional: clear search state if you store it
-  navigate("/", { replace: true });
-  window.location.reload(); // ensures any local UI state is also cleared
+  localStorage.removeItem("search");
+  navigate("/venues", { replace: true });
 };
   
 

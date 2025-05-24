@@ -22,17 +22,16 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <Routes>
+      {/* ✅ Route WITHOUT Layout */}
+      <Route path="/" element={<GlobeLanding />} />
+
+      {/* ✅ All other routes WITH Layout */}
       <Route element={<Layout />}>
-        {/* homepage now shows all venues */}
-        <Route path="/" element={<AllVenues />} />
-        {/* pages */}
         <Route path="/venues" element={<AllVenues />} />
         <Route path="/venues/:id" element={<VenueDetails />} />
         <Route path="/about" element={<About />} />
-        <Route path="/globe" element={<GlobeLanding />} /> {/* 🆕 */}
-        {/* auth */}
+        <Route path="/globe" element={<GlobeLanding />} />
         <Route path="/auth" element={<LoginRegister />} />
-        {/* protected routes */}
         <Route
           path="/account/customer"
           element={
