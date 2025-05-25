@@ -75,6 +75,56 @@ Built with React, Tailwind CSS, and a purposeful design, this project is not onl
 * Search venues  
 * Modals for listing creation and updates
 
+## Key functions
+
+### `fetchAllKribjiVenues()`
+- **Purpose:** Fetches all venues tagged with `[kribji-v2]` from the Noroff API to ensure only venues from my Holidaze site gets published
+- **Where:** Used in the `AllVenues` page.
+- **Details:**
+  - Paginates through the API
+  - Filters only venues with the `[kribji-v2]` tag in the description.
+  - Applies optional filtering via query params (`country`, `search`).
+  - Combines results and applies active UI filters (price, guests, amenities).
+
+---
+
+### `applyFilters(filters)`
+- **Purpose:** Applies filtering to the venue list based on user selections.
+- **Where:** `AllVenues` page.
+- **Details:** Compares price, guest count, and boolean amenity flags to filter the data already fetched.
+
+---
+
+### `handleSubmit(e)`
+- **Purpose:** Handles both login and registration form submissions.
+- **Where:** `LoginRegister` page.
+- **Details:**
+  - Validates fields depending on mode (`login` or `register`).
+  - On registration: creates user, logs in automatically, and redirects to profile.
+  - On login: logs in and redirects.
+  - Stores access token and user data in `localStorage`.
+
+---
+
+### `handleSubmit()` in `AddListingModal`
+- **Purpose:** Submits new venue data to the Noroff API.
+- **Details:**
+  - Uploads media first.
+  - Builds payload with all venue data and selected amenities.
+  - Posts to API and closes modal on success.
+
+---
+
+### `fetchBookings()`
+- **Purpose:** Retrieves a customer's bookings with venue details.
+- **Where:** `CustomerProfile` page.
+- **Details:** Called on component mount. Sorts by newest booking first.
+
+---
+
+### `fetchManagerVenues(username)`
+- **Purpose:** Retrieves all venues created by the manager.
+- **Where:** `ManagerProfile` page.
 ---
 
 ## Design & Philosophy  
