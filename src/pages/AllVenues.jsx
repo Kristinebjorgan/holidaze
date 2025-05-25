@@ -15,7 +15,7 @@ const breakpointColumnsObj = {
 };
 
 const defaultFilters = {
-  price: 100,
+  price: 10000,
   guests: 1,
   wifi: false,
   breakfast: false,

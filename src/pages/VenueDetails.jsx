@@ -158,7 +158,7 @@ export default function VenueDetails() {
 
       {/* Description */}
       <p className="whitespace-pre-line text-sm leading-relaxed mb-8 max-w-prose mx-auto">
-        {venue.description}
+        {venue.description?.replace(/\[kribji-v2\]/gi, "").trim()}
       </p>
 
       {/* Second Image */}
