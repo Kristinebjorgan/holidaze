@@ -27,7 +27,7 @@ export default function GlobeLanding() {
         {" "}
         <button
           onClick={handleExploreClick}
-          className="tracking-wide25 text-xs lowercase opacity-70 hover:opacity-100 transition"
+          className="tracking-wide25 text-xs lowercase opacity-70 hover:underline hover:opacity-100 transition"
         >
           explore
         </button>

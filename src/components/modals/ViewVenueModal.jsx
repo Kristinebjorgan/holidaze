@@ -77,8 +77,10 @@ export default function ViewVenueModal({ venue, onClose }) {
         </button>
 
         <h2 className="text-l mb-2">{venue.name}</h2>
-        <p className="text-sm mb-1">{venue.description}</p>
-        <p className="text-sm underline mb-2">{venue.location?.address}</p>
+        <p className="text-sm mb-2">{venue.location?.address}</p>
+        <p className="text-sm mb-1">
+          {venue.description?.replace(/\[kribji-v2\]/gi, "").trim()}
+        </p>
         <p className="text-sm mb-4">Price €{venue.price} / night</p>
 
         {venue.media?.[0]?.url && (

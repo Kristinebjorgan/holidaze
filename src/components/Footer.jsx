@@ -19,7 +19,9 @@ export default function Footer() {
             contact
           </button>
         </div>
-        <p>© 1992 Holidaze. All rights reserved.</p>
+        <div className="-tracking-normal">
+          <p>© 1992 Holidaze. All rights reserved.</p>
+        </div>
       </footer>
 
       {showContact && <ContactModal onClose={() => setShowContact(false)} />}

@@ -105,13 +105,13 @@ function ManagerProfile() {
         <div className="flex justify-center gap-6 mt-2 text-xs">
           <button
             onClick={() => setShowEditProfile(true)}
-            className="hover:underline hover:opacity-80"
+            className="tracking-wide25 hover:underline hover:opacity-80"
           >
             update
           </button>
           <button
             onClick={() => alert("Messaging coming soon")}
-            className="hover:underline hover:opacity-80 flex items-center gap-1"
+            className="tracking-wide25 hover:underline hover:opacity-80 flex items-center gap-1"
           >
             messages
           </button>
@@ -119,7 +119,7 @@ function ManagerProfile() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-10">
+      <div className="tracking-wide25 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-10">
         <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">listings</p>
           <p className="text-base font-light">{venues.length}</p>
@@ -159,7 +159,7 @@ function ManagerProfile() {
         </div>
         <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
           <p className="text-xs">avg. price</p>
-          <p className="text-base font-medium">
+          <p className="text-base">
             €
             {venues.length
               ? Math.round(
@@ -175,7 +175,7 @@ function ManagerProfile() {
       <div className="flex justify-between items-center mb-10">
         <button
           onClick={() => setShowCreateModal(true)}
-          className="text-sm hover:underline"
+          className="tracking-wide25 text-sm hover:underline"
         >
           add
         </button>
@@ -184,7 +184,7 @@ function ManagerProfile() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="search"
-          className="text-sm bg-transparent text-right focus:outline-none placeholder:text-[#7A92A7]"
+          className="tracking-wide25 text-sm bg-transparent text-right focus:outline-none placeholder:text-[#7A92A7]"
         />
       </div>
 
@@ -200,9 +200,11 @@ function ManagerProfile() {
               key={venue.id}
               className="text-sm text-[#7A92A7] bg-[#D4E9F7]/60 backdrop-blur-md p-6 shadow-sm"
             >
-              <h3 className="text-base font-medium mb-1">{venue.name}</h3>
-              <p className="text-xs mb-1">{venue.location?.address}</p>
-              <p className="text-xs mb-4">€{venue.price}</p>
+              <h3 className="tracking-wide25 text-base mb-1">{venue.name}</h3>
+              <p className="tracking-wide25 text-xs mb-1">
+                {venue.location?.address}
+              </p>
+              <p className="tracking-wide25 text-xs mb-4">€{venue.price}</p>
 
               {venue.media?.[0]?.url && (
                 <div className="relative overflow-hidden mb-4">
@@ -217,19 +219,19 @@ function ManagerProfile() {
               <div className="flex justify-center gap-4 text-xs">
                 <button
                   onClick={() => setViewingVenue(venue)}
-                  className="hover:underline"
+                  className="tracking-wide25 hover:underline"
                 >
                   view
                 </button>
                 <button
                   onClick={() => setEditingVenue(venue)}
-                  className="hover:underline"
+                  className="tracking-wide25 hover:underline"
                 >
                   edit
                 </button>
                 <button
                   onClick={() => handleDeleteVenue(venue.id)}
-                  className="hover:underline"
+                  className="tracking-wide25 hover:underline"
                 >
                   delete
                 </button>

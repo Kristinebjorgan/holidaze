@@ -64,7 +64,7 @@ export default function CustomerProfile() {
   return (
     <section className="px-4 py-10 text-[#7A92A7] max-w-7xl mx-auto text-center">
       <div className="mb-10">
-        <h1 className="text-sm mb-4 lowercase">hello, {user?.name}</h1>
+        <h1 className="tracking-wid25 text-sm mb-4 lowercase">hello, {user?.name}</h1>
         {user?.avatar?.url ? (
           <img
             src={user.avatar.url}
@@ -74,66 +74,66 @@ export default function CustomerProfile() {
         ) : (
           <div className="w-16 h-16 mx-auto bg-[#7A92A7]/10 mb-1" />
         )}
-<div className="flex justify-center gap-6 mt-2 text-xs mb-10">
-  <button
-    onClick={() => setShowEditModal(true)}
-    className="hover:underline hover:opacity-80"
-  >
-    update
-  </button>
-  <button
-    onClick={() => alert('Messaging coming soon')}
-    className="hover:underline hover:opacity-80 flex items-center gap-1"
-  >
-    messages
-  </button>
-</div>
+        <div className="flex justify-center gap-6 mt-2 text-xs mb-10">
+          <button
+            onClick={() => setShowEditModal(true)}
+            className="tracking-wide25 hover:underline hover:opacity-80"
+          >
+            update
+          </button>
+          <button
+            onClick={() => alert("Messaging coming soon")}
+            className="tracking-wide25 hover:underline hover:opacity-80 flex items-center gap-1"
+          >
+            messages
+          </button>
+        </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-10">
-        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
-          <p className="text-xs">bookings</p>
-          <p className="text-base font-light">{bookings.length}</p>
-        </div>
-        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
-          <p className="text-xs">nights</p>
-          <p className="text-base font-light">
-            {bookings.reduce((sum, b) => {
-              const from = new Date(b.dateFrom);
-              const to = new Date(b.dateTo);
-              return sum + Math.ceil((to - from) / (1000 * 60 * 60 * 24));
-            }, 0)}
-          </p>
-        </div>
-        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
-          <p className="text-xs">favorite country</p>
-          <p className="text-base font-light">
-            {(() => {
-              const counts = {};
-              bookings.forEach((b) => {
-                const c = b.venue?.location?.country;
-                if (c) counts[c] = (counts[c] || 0) + 1;
-              });
-              const favorite = Object.entries(counts).sort(
-                (a, b) => b[1] - a[1]
-              )[0];
-              return favorite ? favorite[0] : "N/A";
-            })()}
-          </p>
-        </div>
-        <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
-          <p className="text-xs">reviews given</p>
-          <p className="text-base font-light">
-            {
-              bookings.filter((b) => b.meta?.reviewed || b._reviewed === true)
-                .length
-            }
-          </p>
+        {/* Metrics */}
+        <div className="tracking-wide25 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-10">
+          <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
+            <p className="tracking-wide25 text-xs">bookings</p>
+            <p className="text-base font-light">{bookings.length}</p>
+          </div>
+          <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
+            <p className="tracking-wide25 text-xs">nights</p>
+            <p className="text-base font-light">
+              {bookings.reduce((sum, b) => {
+                const from = new Date(b.dateFrom);
+                const to = new Date(b.dateTo);
+                return sum + Math.ceil((to - from) / (1000 * 60 * 60 * 24));
+              }, 0)}
+            </p>
+          </div>
+          <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
+            <p className="tracking-wide25 text-xs">favorite country</p>
+            <p className="text-base font-light">
+              {(() => {
+                const counts = {};
+                bookings.forEach((b) => {
+                  const c = b.venue?.location?.country;
+                  if (c) counts[c] = (counts[c] || 0) + 1;
+                });
+                const favorite = Object.entries(counts).sort(
+                  (a, b) => b[1] - a[1]
+                )[0];
+                return favorite ? favorite[0] : "N/A";
+              })()}
+            </p>
+          </div>
+          <div className="bg-[#D4E9F7]/60 backdrop-blur-md p-4">
+            <p className="tracking-wide25 text-xs">reviews given</p>
+            <p className="text-base font-light">
+              {
+                bookings.filter((b) => b.meta?.reviewed || b._reviewed === true)
+                  .length
+              }
+            </p>
+          </div>
         </div>
       </div>
-      </div>
 
-      <h2 className="text-sm mb-10">upcoming trips</h2>
+      <h2 className="tracking-wide25 text-sm mb-10">upcoming trips</h2>
 
       <div className="grid gap-10 text-left">
         {bookings.length === 0 ? (
@@ -157,7 +157,7 @@ export default function CustomerProfile() {
                 key={booking.id}
                 className="text-sm text-[#7A92A7] bg-[#D4E9F7]/60 backdrop-blur-md p-6 shadow-sm"
               >
-                <h3 className="text-base font-medium mb-1">
+                <h3 className="text-base mb-1">
                   {booking.venue?.name?.toLowerCase()}
                 </h3>
                 <p className="text-xs mb-1">
@@ -181,7 +181,7 @@ export default function CustomerProfile() {
                 <div className="flex justify-center gap-4 text-xs">
                   <button
                     onClick={() => setViewingBooking(booking)}
-                    className="hover:underline"
+                    className="tracking-wide25 hover:underline"
                   >
                     view
                   </button>
@@ -191,13 +191,13 @@ export default function CustomerProfile() {
                     <>
                       <button
                         onClick={() => setEditingBooking(booking)}
-                        className="hover:underline"
+                        className="tracking-wide25 hover:underline"
                       >
                         edit
                       </button>
                       <button
                         onClick={() => setCancelBooking(booking)}
-                        className="hover:underline"
+                        className="tracking-wide25 hover:underline"
                       >
                         cancel
                       </button>
@@ -208,7 +208,7 @@ export default function CustomerProfile() {
                   {isPast && !isReviewed && (
                     <button
                       onClick={() => setReviewBooking(booking)}
-                      className="hover:underline"
+                      className="tracking-wide25 hover:underline"
                     >
                       review
                     </button>
@@ -216,7 +216,7 @@ export default function CustomerProfile() {
 
                   <button
                     onClick={() => navigate(`/venues/${booking.venue?.id}`)}
-                    className="hover:underline"
+                    className="tracking-wide25 hover:underline"
                   >
                     book again
                   </button>

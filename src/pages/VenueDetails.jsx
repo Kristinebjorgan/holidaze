@@ -151,7 +151,7 @@ export default function VenueDetails() {
       )}
 
       {/* Title + Location */}
-      <h1 className="text-xl font-light mb-1">{venue.name}</h1>
+      <h1 className="tracking-wide25 text-xl font-light mb-1">{venue.name}</h1>
       <p className="text-xs mb-6">
         {venue.location?.address}, {venue.location?.country}
       </p>
