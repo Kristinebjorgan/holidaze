@@ -347,4 +347,8 @@ npm run dev
 - [Gantt Chart (Canva)](https://www.canva.com/design/DAGoYZxJewg/g4OsMr7dFG9vECuQDP-xug/view?utm_content=DAGoYZxJewg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h784f08cc7c)  
 - [Figma Design](https://www.figma.com/design/vcDU8xQqTMmv8BeWEhiGgR/PE2--Holidaze?node-id=0-1&t=Myx9e1ihV8t1bwg8-1)  
 - [Figma Style Guide](https://www.figma.com/design/vcDU8xQqTMmv8BeWEhiGgR/PE2--Holidaze?node-id=0-1&t=Myx9e1ihV8t1bwg8-1)
+- [Hotjar usertesting](https://hotjar.com/l/zaBOzO)
+
+
+
 
