@@ -30,101 +30,190 @@ Built with React, Tailwind CSS, and a purposeful design, this project is not onl
 * Minimal hover-based tooltips  
 * "Explore" link navigates directly to all venues
 
+#### Key Functions
+
+#### `handleCountryClick(country)`
+
+**Location:** `GlobeLanding.jsx`  
+**Purpose:** Navigates users to venue listings filtered by the clicked country.
+
+- Takes a `country` string (from the globe polygon).
+- Lowercases and URL-encodes the value.
+- Navigates to `/venues?country={encodedCountry}` using React Router.
+
 ---
 
-### All Venues Page  
+#### `handleHover(feat)`
+
+**Location:** `Globe3D.jsx`  
+**Purpose:** Enhances interactivity by updating hover tooltip and globe behavior.
+
+- Sets tooltip with country name and position.
+- Temporarily disables globe auto-rotation when hovering.
+- Resumes auto-rotation when no country is hovered.
+
+---
+
+#### All Venues Page  
 * Responsive masonry grid layout with dynamic scaling on scroll  
 * Venue filtering by country, features, price, and guest count  
 * Glassmorphic modal for filters  
 * Lazy loading and infinite scroll  
 * Search and continent/country-based discovery
 
----
+#### Key Functions
 
-### Venue Details Page  
-* Route: /venues/:id  
-* Hero images with optional carousel  
-* Venue data, amenities, and location  
-* Calendar-based booking form with error handling  
-* Local review system stores user-submitted reviews in localStorage per venue, allowing reviews to be added and retrieved dynamically without backend persistence  
-* Breadcrumb navigation
+#### `fetchAllKribjiVenues()`
 
----
+**Location:** `AllVenues.jsx`  
+**Purpose:** Fetches all venues from the API, filters only those tagged with `[kribji-v2]`, and applies country/search filters.
 
-### Login / Register  
-* Toggle between login register  
-* Guest browsing  
-* Email format validation for stud.noroff.no  
-* Protected routes via localStorage token validation
+- Uses a `while` loop to fetch venues across all pages (`limit=100` per page).  
+- Aggregates all venue data before filtering.  
+- Filters only venues whose descriptions include `[kribji-v2]`.  
+- Further filters by `country` (from URL param) and `searchQuery`.  
+- Updates `allFetchedVenues` and `filteredVenues` with valid results.  
 
 ---
 
-### Customer Profile  
-* View and update avatar and bio  
-* List of upcoming bookings (with edit, cancel, rebook, review)  
-* View - edit - delete buttons for full user control  
-* Edit - delete buttons disappears after date of booking, review button w review logic  
-* Modal system for booking actions  
-* Log out
+#### `applyFilters(filters)`
+
+**Location:** `AllVenues.jsx`  
+**Purpose:** Applies UI-selected filters (price, guests, amenities) to the pre-fetched venue list.
+
+- Updates `activeFilters` state with the given filters.  
+- Closes the filter modal.  
+- Applies conditional filtering logic on `allFetchedVenues`.  
+- Updates `filteredVenues` to reflect the selected criteria.  
 
 ---
 
-### Manager Profile  
-* Add, view, edit, or delete venue listings  
-* View stats  
-* Search venues  
-* Modals for listing creation and updates
+#### Login / Register Page  
+* Toggle between login and register modes  
+* Guest browsing supported  
+* Email format validation (`@stud.noroff.no` only)  
+* LocalStorage token handling for protected routes  
+* Conditional navigation based on user role  
 
-## Key functions
+#### Key Functions
 
-### `fetchAllKribjiVenues()`
-- **Purpose:** Fetches all venues tagged with `[kribji-v2]` from the Noroff API to ensure only venues from my Holidaze site gets published
-- **Where:** Used in the `AllVenues` page.
-- **Details:**
-  - Paginates through the API
-  - Filters only venues with the `[kribji-v2]` tag in the description.
-  - Applies optional filtering via query params (`country`, `search`).
-  - Combines results and applies active UI filters (price, guests, amenities).
+#### `handleSubmit(e)`
 
----
+**Location:** `LoginRegister.jsx`  
+**Purpose:** Handles both login and registration flows with validation and conditional routing.
 
-### `applyFilters(filters)`
-- **Purpose:** Applies filtering to the venue list based on user selections.
-- **Where:** `AllVenues` page.
-- **Details:** Compares price, guest count, and boolean amenity flags to filter the data already fetched.
-
----
-
-### `handleSubmit(e)`
-- **Purpose:** Handles both login and registration form submissions.
-- **Where:** `LoginRegister` page.
-- **Details:**
-  - Validates fields depending on mode (`login` or `register`).
-  - On registration: creates user, logs in automatically, and redirects to profile.
-  - On login: logs in and redirects.
-  - Stores access token and user data in `localStorage`.
+- Validates input fields based on selected mode (login or register).  
+- For registration:
+  - Registers the user via the `registerUser()` 
+  - Automatically logs in the user if registration succeeds.  
+- For login:
+  - Calls `loginUser()` with provided credentials.  
+  - On success, stores token and user object in `localStorage`.  
+- Navigates user to appropriate dashboard (`/account/manager` or `/account/customer`).  
+- Displays relevant alerts on validation or API failure.  
 
 ---
 
-### `handleSubmit()` in `AddListingModal`
-- **Purpose:** Submits new venue data to the Noroff API.
-- **Details:**
-  - Uploads media first.
-  - Builds payload with all venue data and selected amenities.
-  - Posts to API and closes modal on success.
+#### `validate()`
+
+**Location:** `LoginRegister.jsx`  
+**Purpose:** Validates form input fields depending on mode.
+
+- Ensures valid username (`^\w+$`) when registering.  
+- Restricts registration to emails ending in `@stud.noroff.no`.  
+- Checks password length and confirms password match.  
+- For login: ensures email and password are provided.  
 
 ---
 
-### `fetchBookings()`
-- **Purpose:** Retrieves a customer's bookings with venue details.
-- **Where:** `CustomerProfile` page.
-- **Details:** Called on component mount. Sorts by newest booking first.
+#### Venue Details Page  
+* Route: `/venues/:id`  
+* Fetches and displays individual venue details  
+* Displays up to 3 hero images, and additional images via carousel  
+* Local reviews shown (retrieved from localStorage)  
+* Booking form with error and success feedback  
+* Breadcrumb navigation and amenity list  
+
+#### Key Functions
+
+#### `fetchVenueAndReviews()`
+
+**Location:** `VenueDetails.jsx` *(inline useEffect)*  
+**Purpose:** Fetches venue details from the API and retrieves local reviews.
+
+- Sends a GET request to `/venues/{id}` with API key header  
+- If successful, updates `venue` state with API data  
+- Retrieves locally stored reviews via `getReviewsForVenue()`  
+- Sorts reviews by date descending  
+- Handles and sets any loading or error state  
 
 ---
 
-### `fetchManagerVenues(username)`
-- **Purpose:** Retrieves all venues created by the manager.
-- **Where:** `ManagerProfile` page.
+#### `handleBookingSubmit(e)`
+
+**Location:** `VenueDetails.jsx`  
+**Purpose:** Submits booking request with selected dates and guest count.
+
+- Prevents default form submission behavior  
+- Checks for localStorage token to verify user authentication  
+- Formats selected dates into ISO strings  
+- Constructs and sends a POST request to `/bookings`  
+- On success: clears booking form and displays success message  
+- On failure: shows error message and logs issue to console 
+
+---
+
+#### Customer Profile Page  
+* Displays user's upcoming bookings and profile metrics  
+* Modal for editing bookings, submitting reviews, or canceling  
+* Auto-fetches bookings from API on load  
+* Includes log out and guest session handling  
+
+#### Key Functions
+
+#### `fetchBookings()`
+
+**Location:** `CustomerProfile.jsx`  
+**Purpose:** Fetches all bookings for the logged-in user from the API, including venue data.
+
+- Retrieves access token and user name from `localStorage`.  
+- Sends an authenticated GET request to `/profiles/{user}/bookings?_venue=true`.  
+- Sorts bookings by start date (descending).  
+- Stores bookings in `bookings` state.  
+- Handles API error and logs it to the console.  
+
+---
+
+#### `handleLogout()`
+
+**Location:** `CustomerProfile.jsx`  
+**Purpose:** Logs the user out by clearing localStorage and redirecting to `/auth`.
+
+- Removes `token` and `user` from `localStorage`.  
+- Redirects to authentication page using `navigate("/auth")`.  
+- Used in log out button and ensures a clean session reset.  
+
+---
+
+#### Manager Profile Page  
+* Displays venue manager dashboard  
+* Add, edit, delete, and view venue listings  
+* Metrics: number of listings, bookings, occupancy, average price  
+* Modal-based venue management and profile editing  
+* Local filtering and search functionality  
+
+#### Key Functions
+
+#### `fetchManagerVenues(username)`
+
+**Location:** `ManagerProfile.jsx`  
+**Purpose:** Retrieves all venue listings associated with the logged-in manager.
+
+- Sends authenticated GET request to `/profiles/{username}/venues?_owner=true`  
+- Stores fetched data in `venues` state  
+- Initializes `localPublishStatus` with all venues set to `true`  
+- Handles and logs API errors  
+
 ---
 
 ## Design & Philosophy  
